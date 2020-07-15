@@ -68,6 +68,7 @@ function renderFace(psd, yOffset, face, outImgSize, background, targetPath) {
                     reject(err);
                     return;
                 }
+
                 convert2(psd.width,
                     outImgSize,
                     face,
@@ -77,28 +78,38 @@ function renderFace(psd, yOffset, face, outImgSize, background, targetPath) {
                         image.setPixelColor(px, x, y);
                     }
                 )
-                image.write(targetPath, (err) => {
-                    b1.increment();
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(image);
-                    }
-                });
+
+                if (targetPath) {
+                    image.write(targetPath, (err) => {
+                        b1.increment();
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(image);
+                        }
+                    });
+                } else {
+                    resolve(image);
+                }
             })
     })
 }
 
-function renderTile(img, face, level, xOffset, yOffset, tileSize, path) {
+function renderTile(sourceImage, face, level, xOffset, yOffset, tileSize, path) {
     return new Promise((resolve, reject) => {
         let offX = xOffset * tileSize;
         let offY = yOffset * tileSize;
-        let imgX = Math.min(tileSize, img.bitmap.width - offX);
-        let imgY = Math.min(tileSize, img.bitmap.height - offY);
+        let imgX = Math.min(tileSize, sourceImage.bitmap.width - offX);
+        let imgY = Math.min(tileSize, sourceImage.bitmap.height - offY);
         new Jimp(imgX,
             imgY,
             (err, image) => {
-                image.composite(img, -xOffset * tileSize, -yOffset * tileSize)
+                for (let y = 0; y < imgY; ++y) {
+                    for (let x = 0; x < imgX; ++x) {
+                        const col = sourceImage.getPixelColor(offX + x, offY + y);
+                        image.setPixelColor(col, x, y);
+                    }
+                }
                 image.write(path, err => {
                     if (err) {
                         reject(err);
@@ -147,8 +158,7 @@ function getMaxLevel(imgX, imgY, tile) {
 
         let maxLevelToRender = 0;
         for (let face = 0; face < 6; ++face) {
-            const targetPath = `c:/temp/!panotest/${namePostfix[face]}.png`;
-            const img = await renderFace(srcImage, yOff, face, targetImgSize, backgroundColor, targetPath)
+            const img = await renderFace(srcImage, yOff, face, targetImgSize, backgroundColor)
             const maxLevel = getMaxLevel(img.bitmap.width, img.bitmap.height, tileSize);
             maxLevelToRender = Math.max(maxLevelToRender, maxLevel);
             // create tiles
