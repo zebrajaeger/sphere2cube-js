@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const Jimp = require('jimp');
 const cliProgress = require('cli-progress');
 const {convert, convert2, faces} = require('./convert');
@@ -5,21 +7,22 @@ const {PSD} = require('./psd');
 
 const b1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 
-const file = 'C:/temp/test.psd';
+// const file = 'C:/temp/test.psd';
 // const file = 'C:/temp/test_10k.psd';
-// const file = 'C:/prj.lars/sphere2cube/samples/test.psb';
+const file = 'C:/prj.lars/sphere2cube/samples/test.psb';
 
 let targetImgSize; // undefined means sour image width / 4
 const previewX = 1000;
-const backgroundColor = {r: 0, g: 255, b: 0, a: 0};
+const backgroundColor = {r: 0, g: 255, b: 0, a: 20};
+const tileSize = 512;
 
 const namePostfix = {
-    0: 'Back',
-    1: 'Left',
-    2: 'Front',
-    3: 'Right',
-    4: 'Top',
-    5: 'Bottom',
+    0: 'b',
+    1: 'l',
+    2: 'f',
+    3: 'r',
+    4: 'u',
+    5: 'd',
 }
 
 async function renderPreview(psd, yOffset, previewWidth, background, targetPath) {
@@ -86,6 +89,38 @@ function renderFace(psd, yOffset, face, outImgSize, background, targetPath) {
     })
 }
 
+function renderTile(img, face, level, xOffset, yOffset, tileSize, path) {
+    return new Promise((resolve, reject) => {
+        let offX = xOffset * tileSize;
+        let offY = yOffset * tileSize;
+        let imgX = Math.min(tileSize, img.bitmap.width - offX);
+        let imgY = Math.min(tileSize, img.bitmap.height - offY);
+        new Jimp(imgX,
+            imgY,
+            (err, image) => {
+                image.composite(img, -xOffset * tileSize, -yOffset * tileSize)
+                image.write(path, err => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(image);
+                    }
+                });
+            })
+    })
+}
+
+function getMaxLevel(imgX, imgY, tile) {
+    let level = 0;
+    while (imgX > tile || imgY > tile) {
+        level++;
+        imgX = Math.round(imgX * 0.5);
+        imgY = Math.round(imgY * 0.5);
+    }
+    return level;
+}
+
+
 (async () => {
         // load source
         const srcImage = new PSD();
@@ -100,17 +135,80 @@ function renderFace(psd, yOffset, face, outImgSize, background, targetPath) {
 
         // render preview
         console.log(`Render preview(${previewX}x${previewX * 3 / 4}):`)
-        await renderPreview(srcImage, yOff, previewX, backgroundColor, 'c:/temp/test-preview.png');
+        await renderPreview(srcImage, yOff, previewX, backgroundColor, 'c:/temp/!panotest/test-preview.png');
 
         // render faces
         targetImgSize = targetImgSize || Math.floor(srcImage.width / 4);
         console.log(`Render sites (${targetImgSize}x${targetImgSize}):`)
-        b1.start(6, 0, {speed: "N/A"})
-        for (let i = 0; i < 6; ++i) {
-            await renderFace(srcImage, yOff, i, targetImgSize, backgroundColor, `c:/temp/test-${namePostfix[i]}.png`)
-            b1.update(i+1);
+
+        // b1.start(6, 0, {speed: "N/A"})
+
+        const basePath = 'c:/temp/!panotest/';
+
+        let maxLevelToRender = 0;
+        for (let face = 0; face < 6; ++face) {
+            const targetPath = `c:/temp/!panotest/${namePostfix[face]}.png`;
+            const img = await renderFace(srcImage, yOff, face, targetImgSize, backgroundColor, targetPath)
+            const maxLevel = getMaxLevel(img.bitmap.width, img.bitmap.height, tileSize);
+            maxLevelToRender = Math.max(maxLevelToRender, maxLevel);
+            // create tiles
+            for (let level = maxLevel; level >= 0; level--) {
+                const levelPath = path.resolve(basePath, `${level + 1}`);
+                fs.mkdirSync(levelPath, {recursive: true});
+                console.log(`Render Level: ${level}`)
+                const countX = Math.ceil(img.bitmap.height / tileSize);
+                const countY = Math.ceil(img.bitmap.width / tileSize);
+                for (let y = 0; y < countY; y++) {
+                    for (let x = 0; x < countX; x++) {
+                        const tilePath = path.resolve(levelPath, `${namePostfix[face]}${y}_${x}.png`);
+                        await renderTile(img, face, level, x, y, tileSize, tilePath);
+                    }
+                }
+                img.scale(0.5);
+            }
+
+            // b1.update(face + 1);
         }
-        b1.stop()
+        // b1.stop()
+
+        // cubeResolution = edge of cube with max resoultion
+
+        const html = `<!DOCTYPE HTML>
+                        <html>
+                        <head>
+                            <meta charset="utf-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Multiresolution panorama</title>
+                            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+                            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+                            <style>
+                            #panorama {
+                                width: 600px;
+                                height: 400px;
+                            }
+                            </style>
+                        </head>
+                        <body>
+                        
+                        <div id="panorama"></div>
+                        <script>
+                        pannellum.viewer('panorama', {
+                            "type": "multires",
+                            "multiRes": {
+                                "basePath": ".",
+                                "path": "/%l/%s%y_%x",
+                                "extension": "png",
+                                "tileResolution": ${tileSize},
+                                "maxLevel": ${maxLevelToRender + 1},
+                                "cubeResolution": ${targetImgSize}
+                            }, 
+                            "autoLoad": true
+                        });
+                        </script>
+                        
+                        </body>
+                        </html>`
+        fs.writeFileSync('C://temp/!panotest/index.html', html);
 
         console.log("finished");
     }
