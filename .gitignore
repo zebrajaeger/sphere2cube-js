@@ -2,3 +2,4 @@ node_modules
 .idea
 bck
 yarn-error.log
+ackage-lock.json

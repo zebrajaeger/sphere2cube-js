@@ -4,7 +4,7 @@
   "description": "Converter for equirectangular images to cubic images",
   "main": "src/index.js",
   "scripts": {
-    "test": "nodemon --max-old-space-size=10000 src/index.js"
+    "test": "nodemon --max-old-space-size=10000 src/dev.js"
   },
   "keywords": [],
   "author": "Lars Brandt",
@@ -16,5 +16,8 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
+  },
+  "bin": {
+    "createpano": "./src/cli.js"
   }
 }
