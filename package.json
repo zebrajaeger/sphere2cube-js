@@ -1,0 +1,20 @@
+{
+  "name": "sphere2cube",
+  "version": "1.0.0",
+  "description": "Converter for equirectangular images to cubic images",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "nodemon --max-old-space-size=10000 src/index.js"
+  },
+  "keywords": [],
+  "author": "Lars Brandt",
+  "license": "ISC",
+  "dependencies": {
+    "@fiahfy/packbits": "^0.0.5",
+    "cli-progress": "^3.8.2",
+    "jimp": "^0.14.0",
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
