@@ -31,13 +31,13 @@ exports.RandomAccessFile = {
         })
     },
 
-    close: async (path) => {
+    close: async (fd) => {
         return new Promise((resolve, reject) => {
-            fs.open(path, 'r', (err, fd) => {
+            fs.close(fd, (err) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(fd);
+                    resolve();
                 }
             })
         })

@@ -12,7 +12,7 @@
   "dependencies": {
     "@fiahfy/packbits": "^0.0.5",
     "cli-progress": "^3.8.2",
-    "jimp": "^0.14.0",
+    "jimp": "^0.14.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"

@@ -70,6 +70,7 @@ exports.convert = (inX, outX, getPixel, setPixel) => {
 
             const xyz = outImgToXYZ(a, b, face2)
             let rgba = calcPixel(xyz, inSize, getPixel);
+            // console.log({i,j,xyz,rgba})
 
             setPixel(i, j, rgba);
         }
@@ -159,6 +160,7 @@ function calcPixel(xyz, inSize, getPixel) {
         const C = getPixel(u1 % inSize.x, clip(v2, 0, inSize.y - 1))
         const D = getPixel(u2 % inSize.x, clip(v2, 0, inSize.y - 1))
 
+        // console.log({A,B,C,D})
         // interpolate
         return {
             r: Math.floor(A.r * (1 - mu) * (1 - nu) + B.r * (mu) * (1 - nu) + C.r * (1 - mu) * nu + D.r * mu * nu),
@@ -168,6 +170,7 @@ function calcPixel(xyz, inSize, getPixel) {
         };
     } catch (err) {
         console.log({u1, v1, u2, v2, mu, nu})
+        throw err;
     }
 }
 
