@@ -8,3 +8,8 @@ Reads PSD and PSB with RAW or RLE Encoding
 
 - [Marzipano](https://github.com/google/marzipano) [(Demo)](https://www.marzipano.net/demos/cube-multi-res/)
 - [Pannellum](https://github.com/mpetroff/pannellum) [(Demo)](https://pannellum.org/documentation/examples/multiresolution/) 
+
+## TODO
+
+- node parameters for more memory
+- x angle for partial panos
