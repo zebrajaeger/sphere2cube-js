@@ -1,6 +1,5 @@
 const fs = require('fs');
 
-
 async function read(fd, position, length) {
     return new Promise((resolve, reject) => {
         const b = new Buffer.alloc(length);

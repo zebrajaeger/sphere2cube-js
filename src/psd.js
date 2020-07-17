@@ -9,7 +9,6 @@ module.exports.PSD = class PSD extends EventEmitter {
     _channels;
     _backgroundColor = {r: 0, g: 0, b: 0, a: 0}
 
-
     constructor(path) {
         super();
     }
@@ -103,7 +102,7 @@ module.exports.PSD = class PSD extends EventEmitter {
             let compression = buf.readUInt16BE(0);
             console.log('Compression', compression);
 
-            // line legths
+            // line lengths
             const lineSizes = [];
             const lineCount = this._height * this._channels;
             console.log('lineCount', lineCount);

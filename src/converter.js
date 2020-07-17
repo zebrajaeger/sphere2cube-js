@@ -50,7 +50,7 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
     // const yAngle =  srcImage.height*180/outerHeight;
 
     // offset foy y-center pos
-    const yShift = Math.floor(outerHeight*config.yOffset/180);
+    const yShift = Math.floor(outerHeight * config.yOffset / 180);
     const yOff = Math.floor((outerHeight - srcImage.height) / 2) - yShift;
     const xOff = Math.floor((outerWidth - srcImage.width) / 2);
     console.log({xOff, yOff})
@@ -63,9 +63,9 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
     }
 
     let maxLevelToRender = 0;
+    const targetImageSize = config.targetImgSize || Math.floor(srcImage.width / 4);
     if (!config.tilesIgnore) {
         // render faces
-        const targetImageSize = config.targetImgSize || Math.floor(srcImage.width / 4);
         console.log(`Render sites (${targetImageSize}x${targetImageSize}):`)
 
         // create tiles
@@ -105,9 +105,8 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
     }
 
     if (!config.htmlIgnore) {
-        fs.writeFileSync(
-            path.resolve(targetFolder, 'index.html'),
-            pannellum.createHtml({tileSize: config.tileSize, maxLevelToRender, targetImgSize: config.targetImgSize}));
+        const html = pannellum.createHtml({tileSize: config.tileSize, maxLevelToRender, targetImageSize});
+        fs.writeFileSync(path.resolve(targetFolder, 'index.html'), html)
     }
 
     console.log("finished");

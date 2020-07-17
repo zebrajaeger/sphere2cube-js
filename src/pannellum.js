@@ -31,7 +31,7 @@ function createHtml(data) {
                 "extension": "png",
                 "tileResolution": ${data.tileSize},
                 "maxLevel": ${data.maxLevelToRender + 1},
-                "cubeResolution": ${data.targetImgSize}
+                "cubeResolution": ${data.targetImageSize}
             }, 
             "autoLoad": true
         });
