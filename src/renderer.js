@@ -3,9 +3,10 @@ const Jimp = require('jimp');
 
 class FaceRenderer extends EventEmitter {
 
-    constructor(sourceImage, yOffset) {
+    constructor(sourceImage, xOffset, yOffset) {
         super();
         this.sourceImage = sourceImage;
+        this.xOffset = xOffset;
         this.yOffset = yOffset;
     }
 
@@ -16,7 +17,6 @@ class FaceRenderer extends EventEmitter {
                 Jimp.rgbaToInt(background.r, background.g, background.b, background.a, undefined),
                 (err, image) => {
                     if (err) {
-                        b1.increment();
                         reject(err);
                         return;
                     }
@@ -24,7 +24,7 @@ class FaceRenderer extends EventEmitter {
                     this.convert2(this.sourceImage.width,
                         outImgSize,
                         face,
-                        (x, y) => this.sourceImage.getPixel(x, y - this.yOffset),
+                        (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
                         (x, y, color) => {
                             const px = Jimp.rgbaToInt(color.r, color.g, color.b, color.a, undefined);
                             image.setPixelColor(px, x, y);
@@ -33,7 +33,6 @@ class FaceRenderer extends EventEmitter {
 
                     if (targetPath) {
                         image.write(targetPath, (err) => {
-                            b1.increment();
                             if (err) {
                                 reject(err);
                             } else {
@@ -101,13 +100,15 @@ class FaceRenderer extends EventEmitter {
 
 class PreviewRenderer extends EventEmitter {
 
-    constructor(sourceImage, yOffset) {
+    constructor(sourceImage, xOffset, yOffset) {
+    // constructor(sourceImage) {
         super();
         this.sourceImage = sourceImage;
         this.yOffset = yOffset;
+        this.xOffset = xOffset;
     }
 
-    async render(previewWidth, background, targetPath) {
+    async render(previewWidth, background, quality, targetPath) {
         return new Promise((resolve, reject) => {
             new Jimp(previewWidth,
                 previewWidth * 3 / 4,
@@ -118,9 +119,11 @@ class PreviewRenderer extends EventEmitter {
                         return;
                     }
 
-                    this.convert(this.sourceImage.width,
+                    this.convert(
+                        this.sourceImage.width,
                         previewWidth,
-                        (x, y) => this.sourceImage.getPixel(x, y - this.yOffset),
+                        (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
+                        // (x, y) => this.sourceImage.getPixel(x, y),
                         (x, y, color) => {
                             // console.log({color})
                             const px = Jimp.rgbaToInt(color.r, color.g, color.b, color.a, undefined);
@@ -128,7 +131,7 @@ class PreviewRenderer extends EventEmitter {
                         }
                     )
 
-                    image.write(targetPath, (err) => {
+                    image.quality(quality).write(targetPath, (err) => {
                         if (err) {
                             reject(err);
                         } else {
