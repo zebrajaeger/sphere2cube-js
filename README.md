@@ -12,4 +12,5 @@ Reads PSD and PSB with RAW or RLE Encoding
 ## TODO
 
 - node parameters for more memory
-- x angle for partial panos
+- use [jpeg-js](https://www.npmjs.com/package/jpeg-js) instead jimp (cause of memory args)
+- use [pngjs](https://www.npmjs.com/package/pngjs) instead jimp (to remove jimp completely)

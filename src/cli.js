@@ -23,6 +23,9 @@ program
 
     .option('-hi, --htmlIgnore', 'Don\'t render html', 'false')
 
+    .option('-zp, --zipPath <path>', 'Path for Zip Filr', 'pano.zip')
+    .option('-zi, --zipIgnore', 'Don\'t zip', 'false')
+
     .option('-v, --verbose', 'verbose', 'false')
 
     .parse(process.argv);
@@ -44,10 +47,14 @@ const cfg = {
 
     htmlIgnore: Boolean(program.htmlIgnore),
 
+    zipPath: program.zipPath,
+    zipIgnore: Boolean(program.zipIgnore),
+
     verbose: Boolean(program.verbose)
 };
 
-if(cfg.verbose){
+if (cfg.verbose) {
+    console.log({input: program.input, output: program.output})
     console.log(cfg)
 }
 

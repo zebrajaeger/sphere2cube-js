@@ -11,9 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "@fiahfy/packbits": "^0.0.5",
+    "archiver": "^4.0.2",
     "cli-progress": "^3.8.2",
     "commander": "^5.1.0",
-    "jimp": "^0.14.0"
+    "jpeg-js": "^0.4.1",
+    "pngjs": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"

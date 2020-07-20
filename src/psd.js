@@ -140,7 +140,7 @@ module.exports.PSD = class PSD extends EventEmitter {
 
             await RandomAccessFile.close(fd);
             
-            resolve();
+            resolve(true);
         });
     }
 }

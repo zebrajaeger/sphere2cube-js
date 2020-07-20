@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const Jimp = require('jimp');
+const {IMG} = require('./img');
 
 class FaceRenderer extends EventEmitter {
 
@@ -10,42 +10,20 @@ class FaceRenderer extends EventEmitter {
         this.yOffset = yOffset;
     }
 
-    render(face, outImgSize, background, targetPath) {
-        return new Promise((resolve, reject) => {
-            new Jimp(outImgSize,
-                outImgSize,
-                Jimp.rgbaToInt(background.r, background.g, background.b, background.a, undefined),
-                (err, image) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
+    render(face, outImgSize) {
+        const img = new IMG();
+        img.create(outImgSize, outImgSize);
+        img.fill({r: 0, g: 0, b: 0, a: 0});
 
-                    this.convert2(this.sourceImage.width,
-                        outImgSize,
-                        face,
-                        (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
-                        (x, y, color) => {
-                            const px = Jimp.rgbaToInt(color.r, color.g, color.b, color.a, undefined);
-                            image.setPixelColor(px, x, y);
-                        }
-                    )
-
-                    if (targetPath) {
-                        image.write(targetPath, (err) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(image);
-                            }
-                        });
-                    } else {
-                        resolve(image);
-                    }
-
-                    this.emit('end')
-                })
-        })
+        this.convert2(this.sourceImage.width,
+            outImgSize,
+            face,
+            (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
+            (x, y, color) => {
+                img.setPixel(x, y, color);
+            }
+        )
+        return img;
     }
 
     outImgToXYZ2(a, b, face) {
@@ -95,51 +73,33 @@ class FaceRenderer extends EventEmitter {
                 this.emit('progress', (edgeOut * i) + j);
             }
         }
+        this.emit('end');
     }
 }
 
 class PreviewRenderer extends EventEmitter {
 
     constructor(sourceImage, xOffset, yOffset) {
-    // constructor(sourceImage) {
+        // constructor(sourceImage) {
         super();
         this.sourceImage = sourceImage;
         this.yOffset = yOffset;
         this.xOffset = xOffset;
     }
 
-    async render(previewWidth, background, quality, targetPath) {
-        return new Promise((resolve, reject) => {
-            new Jimp(previewWidth,
-                previewWidth * 3 / 4,
-                Jimp.rgbaToInt(background.r, background.g, background.b, background.a, undefined),
-                (err, image) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
+    render(previewWidth, background, quality, targetPath) {
+        const img = new IMG();
+        img.create(previewWidth, previewWidth * 3 / 4);
 
-                    this.convert(
-                        this.sourceImage.width,
-                        previewWidth,
-                        (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
-                        // (x, y) => this.sourceImage.getPixel(x, y),
-                        (x, y, color) => {
-                            // console.log({color})
-                            const px = Jimp.rgbaToInt(color.r, color.g, color.b, color.a, undefined);
-                            image.setPixelColor(px, x, y);
-                        }
-                    )
-
-                    image.quality(quality).write(targetPath, (err) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(image);
-                        }
-                    });
-                });
-        });
+        this.convert(
+            this.sourceImage.width,
+            previewWidth,
+            (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
+            (x, y, pixel) => {
+                img.setPixel(x, y, pixel);
+            }
+        )
+        return img;
     }
 
     outImgToXYZ(a, b, face) {

@@ -31,9 +31,11 @@ function createHtml(data) {
                 "extension": "png",
                 "tileResolution": ${data.tileSize},
                 "maxLevel": ${data.maxLevelToRender + 1},
-                "cubeResolution": ${data.targetImageSize}
+                "cubeResolution": ${data.targetImageSize},
             }, 
-            "autoLoad": true
+            "autoRotate": 2,
+            "preview": "${data.previewPath}",
+            "autoLoad": false
         });
     </script>
     
