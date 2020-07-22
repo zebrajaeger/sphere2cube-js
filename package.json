@@ -1,10 +1,11 @@
 {
   "name": "@zebrajaeger/createpano",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Converter for images to panoramic viewer",
   "main": "src/index.js",
   "scripts": {
-    "test": "nodemon --max-old-space-size=10000 src/dev.js"
+    "test": "nodemon --max-old-space-size=10000 src/dev.js",
+    "deploy": "npm publish --access public"
   },
   "keywords": [],
   "author": "Lars Brandt",
