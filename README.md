@@ -65,7 +65,15 @@ Options:
 
 ```
 
+## Preview
 
+### Downscaled
+
+![dsf](./doc/preview.eq.png)
+
+### Cubic
+
+![dsf](./doc/preview.png)
 
 ## Many Thanks to
 
