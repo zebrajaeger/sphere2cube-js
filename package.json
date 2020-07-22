@@ -1,6 +1,6 @@
 {
   "name": "@zebrajaeger/createpano",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Converter for equirectangular images to cubic images",
   "main": "src/index.js",
   "scripts": {
