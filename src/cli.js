@@ -22,13 +22,21 @@ program
     .option('-pw, --previewQuality <percent>', 'Preview quality in percent', '85')
 
     .option('-hi, --htmlIgnore', 'Don\'t render html', 'false')
+    .option('-ht, --htmlTitle <name>', 'Head-Title-Tag', '')
 
-    .option('-zp, --zipPath <path>', 'Path for Zip Filr', 'pano.zip')
+    .option('-zp, --zipPath <path>', 'Path for Zip File', 'pano.zip')
     .option('-zi, --zipIgnore', 'Don\'t zip', 'false')
 
     .option('-v, --verbose', 'verbose', 'false')
 
     .parse(process.argv);
+
+
+let title = program.input;
+if (program.htmlTitle && program.htmlTitle.length !== 0) {
+    title = program.htmlTitle;
+}
+
 
 const cfg = {
     targetImgSize: program.targetSize,
@@ -46,6 +54,7 @@ const cfg = {
     previewQuality: parseInt(program.previewQuality, 10),
 
     htmlIgnore: Boolean(program.htmlIgnore),
+    htmlTitle: title,
 
     zipPath: program.zipPath,
     zipIgnore: Boolean(program.zipIgnore),

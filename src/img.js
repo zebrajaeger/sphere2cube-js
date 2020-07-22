@@ -4,7 +4,7 @@ const EventEmitter = require('events');
 const jpeg = require('jpeg-js');
 const PNG = require("pngjs").PNG;
 
-const {bilinear} = require('./scale');
+const {Bilinear} = require('./scale');
 
 module.exports.IMG = class IMG extends EventEmitter {
     _data;
@@ -115,7 +115,8 @@ module.exports.IMG = class IMG extends EventEmitter {
         const tempImg = new IMG();
         tempImg.create(tX, tY);
 
-        bilinear(
+        const bilinear = new Bilinear();
+        bilinear.scale(
             {w: this.width, h: this.height},
             {w: tempImg.width, h: tempImg.height},
             (x, y) => {
