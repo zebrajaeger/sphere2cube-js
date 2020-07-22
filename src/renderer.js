@@ -3,9 +3,10 @@ const {IMG} = require('./img');
 
 class FaceRenderer extends EventEmitter {
 
-    constructor(sourceImage, xOffset, yOffset) {
+    constructor(sourceImage, w, xOffset, yOffset) {
         super();
         this.sourceImage = sourceImage;
+        this.w = w;
         this.xOffset = xOffset;
         this.yOffset = yOffset;
     }
@@ -15,13 +16,11 @@ class FaceRenderer extends EventEmitter {
         img.create(outImgSize, outImgSize);
         img.fill({r: 0, g: 0, b: 0, a: 0});
 
-        this.convert2(this.sourceImage.width,
+        this.convert2(this.w,
             outImgSize,
             face,
             (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
-            (x, y, color) => {
-                img.setPixel(x, y, color);
-            }
+            (x, y, color) => img.setPixel(x, y, color)
         )
         return img;
     }
@@ -79,25 +78,25 @@ class FaceRenderer extends EventEmitter {
 
 class PreviewRenderer extends EventEmitter {
 
-    constructor(sourceImage, xOffset, yOffset) {
+    constructor(sourceImage, w, xOffset, yOffset) {
         // constructor(sourceImage) {
         super();
         this.sourceImage = sourceImage;
-        this.yOffset = yOffset;
+        this.w = w;
         this.xOffset = xOffset;
+        this.yOffset = yOffset;
     }
 
-    render(previewWidth, background, quality, targetPath) {
+    render(previewWidth) {
         const img = new IMG();
         img.create(previewWidth, previewWidth * 3 / 4);
 
+        // console.log('###', this.xOffset,  this.yOffset)
         this.convert(
-            this.sourceImage.width,
+            this.w,
             previewWidth,
             (x, y) => this.sourceImage.getPixel(x - this.xOffset, y - this.yOffset),
-            (x, y, pixel) => {
-                img.setPixel(x, y, pixel);
-            }
+            (x, y, pixel) => img.setPixel(x, y, pixel)
         )
         return img;
     }
@@ -183,6 +182,7 @@ class PreviewRenderer extends EventEmitter {
 }
 
 function calcPixel(xyz, inSize, getPixel) {
+    // console.log('calcPixel',{xyz, inSize})
     const theta = Math.atan2(xyz.y, xyz.x) // range -pi to pi
     const r = Math.hypot(xyz.x, xyz.y)
     const phi = Math.atan2(xyz.z, r) // range -pi/2 to pi/2
@@ -201,6 +201,7 @@ function calcPixel(xyz, inSize, getPixel) {
 
     // Pixel values of four corners
     try {
+        // console.log('calcPixel',u1 % inSize.x, clip(v1, 0, inSize.y - 1))
         const A = getPixel(u1 % inSize.x, clip(v1, 0, inSize.y - 1));
         const B = getPixel(u2 % inSize.x, clip(v1, 0, inSize.y - 1))
         const C = getPixel(u1 % inSize.x, clip(v2, 0, inSize.y - 1))

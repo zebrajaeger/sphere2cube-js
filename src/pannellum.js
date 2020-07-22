@@ -41,7 +41,11 @@ function createHtml(data) {
             }, 
             "autoRotate": 2,
             "preview": "${data.previewPath}",
-            "autoLoad": false
+            "autoLoad": false,
+            "minYaw": ${data.area.x.min},
+            "maxYaw": ${data.area.x.max},
+            "minPitch": ${data.area.y.min},
+            "maxPitch": ${data.area.y.max}
         });
     </script>
     

@@ -54,30 +54,37 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
     }
 
     // equirectangular outer bound
-    const outerWidth = config.angel === 360 ? srcImage.width : Math.floor(srcImage.width * 360 / config.angel);
+    const outerWidth = config.panoAngle === 360 ? srcImage.width : Math.floor(srcImage.width * 360 / config.panoAngle);
     const outerHeight = Math.floor(outerWidth / 2);
+    console.log({angel: config.panoAngle})
     // const xAngle =  srcImage.width*180/outerWidth;
     // const yAngle =  srcImage.height*180/outerHeight;
 
     // offset foy y-center pos
-    const yShift = Math.floor(outerHeight * config.yOffset / 180);
+    const yShift = Math.floor(outerHeight * config.panoYOffset / 180);
     const yOff = Math.floor((outerHeight - srcImage.height) / 2) - yShift;
     const xOff = Math.floor((outerWidth - srcImage.width) / 2);
+    console.log({outerWidth, outerHeight, srcImageWidth: srcImage.width, srcImageHeight: srcImage.height})
     console.log({xOff, yOff})
 
     if (!config.previewIgnore) {
-        preview1(config, srcImage, xOff, yOff, filesToZip);
+        preview1(config, srcImage, outerWidth, xOff, yOff, filesToZip);
         preview2(srcImage, config, filesToZip);
     }
 
     let maxLevelToRender = 0;
     const targetImageSize = config.targetImgSize || Math.floor(srcImage.width / 4);
     if (!config.tilesIgnore) {
-        maxLevelToRender = tiles(srcImage, xOff, yOff, faceName, targetImageSize, config, maxLevelToRender, targetFolder);
+        maxLevelToRender = tiles(srcImage, outerWidth, xOff, yOff, faceName, targetImageSize, config, maxLevelToRender, targetFolder);
     }
 
     if (!config.htmlIgnore) {
-        html(config, maxLevelToRender, targetImageSize, targetFolder);
+        const hAngel = srcImage.height * 180 / outerHeight
+        const area = {
+            x: {min: config.panoAngle / -2, max: config.panoAngle / 2},
+            y: {min: (hAngel / -2) + config.panoYOffset, max: (hAngel / 2) + config.panoYOffset}
+        }
+        html(config, maxLevelToRender, targetImageSize, targetFolder, area);
         filesToZip.push('./index.html')
     }
 
@@ -105,7 +112,7 @@ function zip(config, filesToZip) {
 
         let zipStream = fs.createWriteStream(config.zipPath);
         zipStream.on('close', () => {
-            console.log(`File Size: ${prettyBytes(archive.pointer())}` );
+            console.log(`File Size: ${prettyBytes(archive.pointer())}`);
             resolve();
         });
         zipStream.on('warning', function (err) {
@@ -156,23 +163,27 @@ function zip(config, filesToZip) {
     });
 }
 
-function html(config, maxLevelToRender, targetImageSize, targetFolder) {
+function html(config, maxLevelToRender, targetImageSize, targetFolder, area) {
     console.log()
     console.log('+------------------------------------------------------------------------')
     console.log('| Render Html')
     console.log('+------------------------------------------------------------------------')
-    const html = pannellum.createHtml({
+
+    let data = {
         tileSize: config.tileSize,
         maxLevelToRender,
         targetImageSize,
         previewPath: config.previewPath,
-        title: config.htmlTitle
-    });
+        title: config.htmlTitle,
+        area
+    };
+    const html = pannellum.createHtml(data);
+    console.log({data})
     fs.writeFileSync(path.resolve(targetFolder, 'index.html'), html)
 }
 
-function tiles(srcImage, xOff, yOff, faceName, targetImageSize, config, maxLevelToRender, targetFolder) {
-    const faceRenderer = new FaceRenderer(srcImage, xOff, yOff);
+function tiles(srcImage, w, xOff, yOff, faceName, targetImageSize, config, maxLevelToRender, targetFolder) {
+    const faceRenderer = new FaceRenderer(srcImage, w, xOff, yOff);
     for (let face = 0; face < 6; ++face) {
         console.log()
         console.log('+------------------------------------------------------------------------')
@@ -212,12 +223,12 @@ function tiles(srcImage, xOff, yOff, faceName, targetImageSize, config, maxLevel
     return maxLevelToRender;
 }
 
-function preview1(config, srcImage, xOff, yOff, filesToZip) {
+function preview1(config, srcImage, outerWidth, xOff, yOff, filesToZip) {
     console.log()
     console.log('+------------------------------------------------------------------------')
-    console.log(`| Render cubic preview(${config.previewWidth}x${config.previewWidth * 3 / 4}):`)
+    console.log(`| Render cubic preview(${config.previewWidth}x${config.previewWidth * 3 / 4}; xOff: ${xOff}, yOff:${yOff})`)
     console.log('+------------------------------------------------------------------------')
-    const previewRenderer = new PreviewRenderer(srcImage, xOff, yOff);
+    const previewRenderer = new PreviewRenderer(srcImage, outerWidth, xOff, yOff);
     let prevImg1 = previewRenderer.render(config.previewWidth);
     prevImg1.write(config.previewPath);
     filesToZip.push(config.previewPath);

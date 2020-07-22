@@ -47,8 +47,8 @@ if (program.htmlTitle && program.htmlTitle.length !== 0) {
 
 const cfg = {
     targetImgSize: program.targetSize,
-    angel: parseFloat(program.angle),
-    yOffset: parseFloat(program.yOffset),
+    panoAngle: parseFloat(program.panoAngle),
+    panoYOffset: parseFloat(program.panoYOffset),
 
     backgroundColor: {r: 0, g: 0, b: 0, a: 0},
     tilesIgnore: Boolean(program.tilesIgnore),

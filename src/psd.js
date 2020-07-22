@@ -30,7 +30,6 @@ module.exports.PSD = class PSD extends EventEmitter {
     }
 
     getPixel(x, y) {
-        // console.log({l:this._lines})
         if (x < 0 || x >= this._width || y < 0 || y >= this._height) {
             return this._backgroundColor;
         } else {
@@ -101,46 +100,69 @@ module.exports.PSD = class PSD extends EventEmitter {
             offset += 2;
             let compression = buf.readUInt16BE(0);
             console.log('Compression', compression);
-
-            // line lengths
-            const lineSizes = [];
-            const lineCount = this._height * this._channels;
-            console.log('lineCount', lineCount);
-            if (version === 1) {
-                buf = await RandomAccessFile.read(fd, offset, (lineCount * 2));
-                offset += (lineCount * 2);
-                console.log('lineSizes size', buf.length)
-                for (let i = 0; i < lineCount; ++i) {
-                    lineSizes.push(buf.readUInt16BE(i << 1));
-                }
-            } else if (version === 2) {
-                buf = await RandomAccessFile.read(fd, offset, (lineCount * 4));
-                offset += (lineCount * 4);
-                console.log('lineSizes size', buf.length)
-                for (let i = 0; i < lineCount; ++i) {
-                    lineSizes.push(buf.readUInt32BE(i << 2));
-                }
+            if (compression === 0) {
+                await this.readRAWData(buf, fd, offset);
+            } else if (compression === 1) {
+                await this.readRLEData(version, buf, fd, offset);
             }
-            // console.log('Line SIzes', lineSizes);
-            console.log('offset', offset);
-
-            console.log('Read Image Data.');
-
-            this.emit('begin', lineCount);
-            for (let x = 0; x < lineCount; ++x) {
-                // console.log(x, lineSizes[x])
-                buf = await RandomAccessFile.read(fd, offset, lineSizes[x]);
-                let l = packbits.decode(buf);
-                this._lines.push(l)
-                // console.log(`index:${x} length: ${l.length}`);
-                offset += lineSizes[x];
-                this.emit('progress', x);
-            }
-            this.emit('end');
 
             await RandomAccessFile.close(fd);
-            
+
             resolve(true);
         });
+    }
+
+    async readRAWData(buf, fd, offset) {
+        console.log('read RAW Data');
+        this._lines = [];
+        const lineCount = this.height * this._channels;
+        this.emit('begin', lineCount);
+        for (let x = 0; x < lineCount; ++x) {
+            buf = await RandomAccessFile.read(fd, offset, this.width);
+            this._lines.push(buf)
+            offset += this.width;
+            this.emit('progress', x);
+        }
+        this.emit('end');
+    }
+
+    async readRLEData(version, buf, fd, offset) {
+        console.log('read RLE Data');
+        this._lines = [];
+        // line lengths
+        const lineSizes = [];
+        const lineCount = this._height * this._channels;
+        console.log('lineCount', lineCount);
+        if (version === 1) {
+            buf = await RandomAccessFile.read(fd, offset, (lineCount * 2));
+            offset += (lineCount * 2);
+            console.log('lineSizes size', buf.length)
+            for (let i = 0; i < lineCount; ++i) {
+                lineSizes.push(buf.readUInt16BE(i << 1));
+            }
+        } else if (version === 2) {
+            buf = await RandomAccessFile.read(fd, offset, (lineCount * 4));
+            offset += (lineCount * 4);
+            console.log('lineSizes size', buf.length)
+            for (let i = 0; i < lineCount; ++i) {
+                lineSizes.push(buf.readUInt32BE(i << 2));
+            }
+        }
+        console.log('Line SIzes', lineSizes);
+        console.log('offset', offset);
+
+        console.log('Read Image Data.');
+
+        this.emit('begin', lineCount);
+        for (let x = 0; x < lineCount; ++x) {
+            // console.log(x, lineSizes[x])
+            buf = await RandomAccessFile.read(fd, offset, lineSizes[x]);
+            let l = packbits.decode(buf);
+            this._lines.push(l)
+            // console.log(`index:${x} length: ${l.length}`);
+            offset += lineSizes[x];
+            this.emit('progress', x);
+        }
+        this.emit('end');
     }
 }

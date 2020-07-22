@@ -8,7 +8,7 @@
 Convert
 - full spheric panorama image to viewer (equirectangular)
 - 360° panorama image to viewer (y to small for equirectangular)
-- partial panorama image to viewer (TODO)
+- partial panorama image to viewer
 
 Reads 
 - PSD and PSB with RAW or RLE Encoding
@@ -23,7 +23,7 @@ Writes
 - all above as zip file 
 
 
-## Installation (TODO make release for npmjs)
+## Installation
 
 ```bash
 $ npm install -g  @zebrajaeger/createpano
