@@ -1,16 +1,25 @@
-# sphere2cube-js
+# @zebrajaeger/createpano
 
-Many thanks to https://stackoverflow.com/questions/29678510/convert-21-equirectangular-panorama-to-cube-map
+[![NPM Version][npm-image]][npm-url]
+[![Install Size](https://packagephobia.now.sh/badge?p=@zebrajaeger/createpano)](https://packagephobia.now.sh/result?p=@zebrajaeger/createpano)
 
-Reads PSD and PSB with RAW or RLE Encoding
+Converts  
+- full spheric panorama image to viewer (equirectangular)
+- 360° panorama image to viewer (y to small for equirectangular)
+- partial panorama image ti viewer (TODO)
 
-## Viewer (TODO)
+Reads 
+- PSD and PSB with RAW or RLE Encoding
+- jpg
+- png (TODO)
 
-- [Marzipano](https://github.com/google/marzipano) [(Demo)](https://www.marzipano.net/demos/cube-multi-res/)
-- [Pannellum](https://github.com/mpetroff/pannellum) [(Demo)](https://pannellum.org/documentation/examples/multiresolution/) 
+Writes
+- preview (cubic)
+- preview (downscaled)
+- tiles (pyramide levels)
+- html (pannellum implementation)
+- all above as zip file 
 
-## TODO
-
-- node parameters for more memory
-- use [jpeg-js](https://www.npmjs.com/package/jpeg-js) instead jimp (cause of memory args)
-- use [pngjs](https://www.npmjs.com/package/pngjs) instead jimp (to remove jimp completely)
+Many Thanks to
+- https://stackoverflow.com/questions/29678510/convert-21-equirectangular-panorama-to-cube-map
+- https://stackoverflow.com/questions/1726630/formatting-a-number-with-exactly-two-decimals-in-javascript
