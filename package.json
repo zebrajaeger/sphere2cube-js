@@ -1,7 +1,7 @@
 {
   "name": "@zebrajaeger/createpano",
   "version": "0.1.0",
-  "description": "Converter for equirectangular images to cubic images",
+  "description": "Converter for images to panoramic viewer",
   "main": "src/index.js",
   "scripts": {
     "test": "nodemon --max-old-space-size=10000 src/dev.js"
@@ -9,6 +9,11 @@
   "keywords": [],
   "author": "Lars Brandt",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zebrajaeger/sphere2cube-js.git"
+  },
+  "homepage": "https://github.com/zebrajaeger/sphere2cube-js/",
   "dependencies": {
     "@fiahfy/packbits": "^0.0.5",
     "archiver": "^4.0.2",

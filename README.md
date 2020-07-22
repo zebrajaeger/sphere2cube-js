@@ -1,7 +1,8 @@
 # @zebrajaeger/createpano
 
-[![NPM Version][npm-image]][npm-url]
+[![NPM Version](https://img.shields.io/npm/v/@zebrajaeger/createpano.svg?style=flat)](https://www.npmjs.org/package/@zebrajaeger/createpano)
 [![Install Size](https://packagephobia.now.sh/badge?p=@zebrajaeger/createpano)](https://packagephobia.now.sh/result?p=@zebrajaeger/createpano)
+[![License](https://img.shields.io/github/license/zebrajaeger/sphere2cube-js)](https://img.shields.io/github/license/zebrajaeger/sphere2cube-js)
 
 Converts  
 - full spheric panorama image to viewer (equirectangular)
