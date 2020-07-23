@@ -22,7 +22,6 @@ Writes
 - html (pannellum implementation)
 - all above as zip file 
 
-
 ## Installation
 
 ```bash

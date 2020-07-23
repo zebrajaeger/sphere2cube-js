@@ -171,6 +171,7 @@ function html(config, maxLevelToRender, targetImageSize, targetFolder, area) {
 
     let data = {
         tileSize: config.tileSize,
+        autoLoad: true,
         maxLevelToRender,
         targetImageSize,
         previewPath: config.previewPath,

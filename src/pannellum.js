@@ -29,26 +29,58 @@ function createHtml(data) {
     <div id="panorama" class="panorma"></div>
     
     <script>
-        pannellum.viewer('panorama', {
-            "type": "multires",
-            "multiRes": {
-                "basePath": ".",
-                "path": "/%l/%s%y_%x",
-                "extension": "png",
-                "tileResolution": ${data.tileSize},
-                "maxLevel": ${data.maxLevelToRender + 1},
-                "cubeResolution": ${data.targetImageSize},
-            }, 
-            "autoRotate": 2,
-            "preview": "${data.previewPath}",
-            "autoLoad": false,
-            "minYaw": ${data.area.x.min},
-            "maxYaw": ${data.area.x.max},
-            "minPitch": ${data.area.y.min},
-            "maxPitch": ${data.area.y.max}
-        });
+        function checkSensor() {
+            return new Promise(resolve => {
+                const sensor = new AbsoluteOrientationSensor();
+                if (sensor) {
+                    sensor.onreading = () => {
+                        console.log('onReading');
+                        sensor.stop();
+                        resolve(true);
+                    }
+                    sensor.onerror = (event) => {
+                        if (event.error.name === 'NotReadableError') {
+                            console.log("Sensor is not available.");
+                        }
+                        sensor.stop();
+                        resolve(false);
+                    }
+                    sensor.start();
+                } else {
+                    resolve(false);
+                }
+            })
+        }
+
+        (async () => {
+            const av = await checkSensor();
+            const cfg = {
+                "type": "multires",
+                "multiRes": {
+                    "basePath": ".",
+                    "path": "/%l/%s%y_%x",
+                    "extension": "png",
+                    "tileResolution": ${data.tileSize},
+                    "maxLevel": ${data.maxLevelToRender + 1},
+                    "cubeResolution": ${data.targetImageSize},
+                }, 
+                "preview": "${data.previewPath}",
+                "autoLoad": ${data.autoLoad},
+                "minYaw": ${data.area.x.min},
+                "maxYaw": ${data.area.x.max},
+                "minPitch": ${data.area.y.min},
+                "maxPitch": ${data.area.y.max}
+            }
+            cfg['orientationOnByDefault'] = av;
+            if (!av) {
+                cfg['autoRotate'] = 2;
+            }
+            if(console){
+                console.log(cfg);
+            }
+            pannellum.viewer('panorama', cfg);
+        })();
     </script>
-    
     </body>
 </html>
 `;
