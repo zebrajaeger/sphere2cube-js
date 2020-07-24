@@ -2,14 +2,13 @@ module.exports = {
     createHtml: createHtml
 }
 
-function createHtml(data) {
+function createHtml(config,data) {
     return `
-<!DOCTYPE HTML>
 <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${data.htmlTitle}</title>
+        <title>${config.htmlTitle}</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
         <style>
@@ -52,6 +51,7 @@ function createHtml(data) {
             })
         }
 
+        /// ${config.tileFileType}
         (async () => {
             const av = await checkSensor();
             const cfg = {
@@ -59,12 +59,12 @@ function createHtml(data) {
                 "multiRes": {
                     "basePath": ".",
                     "path": "/%l/%s%y_%x",
-                    "extension": "png",
-                    "tileResolution": ${data.tileSize},
+                    "extension": "${config.tileFileType}",
+                    "tileResolution": ${config.tileSize},
                     "maxLevel": ${data.levels.levelCount},
                     "cubeResolution": ${data.targetImageSize},
                 }, 
-                "preview": "${data.previewPath}",
+                "preview": "${config.previewScaledPath}",
                 "autoLoad": ${data.autoLoad},
                 "minYaw": ${data.area.x.min},
                 "maxYaw": ${data.area.x.max},

@@ -24,7 +24,8 @@
     "humanize-duration": "^3.23.1",
     "jpeg-js": "^0.4.1",
     "pngjs": "^5.0.0",
-    "pretty-bytes": "^5.3.0"
+    "pretty-bytes": "^5.3.0",
+    "twig": "^1.15.1"
   },
   "devDependencies": {
     "marzipano": "^0.9.1",

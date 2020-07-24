@@ -7,30 +7,28 @@ module.exports = {
     createHtml: createHtml
 }
 
-function createHtml(data) {
+function createHtml(config, data) {
     return `
 <html>
 <head>
-<script  type="text/javascript" src="https://cdn.jsdelivr.net/npm/marzipano@0.9.1/dist/marzipano.min.js"></script>     
-
-<link rel="stylesheet" href="https://www.marzipano.net/demos/sample-tour/style.css">
+    <title>${config.htmlTitle}</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/marzipano@0.9.1/dist/marzipano.min.js"></script>     
+    <link rel="stylesheet" href="https://www.marzipano.net/demos/sample-tour/style.css">
 </head>
-
 <body>
-<div id="pano" class="pano"></div>
-<script>
-    let panoElement = document.getElementById('pano');
-    let viewer = new Marzipano.Viewer(panoElement, {})
-    let geometry = new Marzipano.CubeGeometry(${JSON.stringify(data.levels.levels)});
-    let source = Marzipano.ImageUrlSource.fromString('{z}/{f}{y}_{x}.png');
-     source._sourceFromTile = (tile)=>{
-            return {url:\`\${tile.z + 1}/\${tile.face}\${tile.y}_\${tile.x}.png\`};
+    <div id="pano" class="pano"></div>
+    <script>
+        let panoElement = document.getElementById('pano');
+        let viewer = new Marzipano.Viewer(panoElement, {})
+        let geometry = new Marzipano.CubeGeometry(${JSON.stringify(data.levels.levels)});
+        let source = Marzipano.ImageUrlSource.fromString('');
+        source._sourceFromTile = (tile)=>{
+            return {url:\`\${tile.z + 1}/\${tile.face}\${tile.y}_\${tile.x}.${config.tileFileType}\`};
         }
-    let view = new Marzipano.RectilinearView();
-    let scene = viewer.createScene({source, geometry, view});
-    scene.switchTo();
-</script>
+        let view = new Marzipano.RectilinearView();
+        let scene = viewer.createScene({source, geometry, view});
+        scene.switchTo();
+    </script>
 </body>
 </html>
-`
-}
+`}
