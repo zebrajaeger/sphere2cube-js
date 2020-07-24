@@ -11,11 +11,12 @@ const {PSD} = require('./psd');
 const {IMG} = require('./img');
 const {Bilinear} = require('./scale');
 const pannellum = require('./pannellum');
+const marzipano = require('./marzipano');
 const {FaceRenderer, PreviewRenderer} = require('./renderer');
 
 const b1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
 
-module.exports.defaultFaceName = defaultFaceName = {
+module.exports.defaultFaceNames = defaultFaceNames = {
     0: {filePrefix: 'b', name: 'Back'},
     1: {filePrefix: 'l', name: 'Left'},
     2: {filePrefix: 'f', name: 'Front'},
@@ -26,16 +27,16 @@ module.exports.defaultFaceName = defaultFaceName = {
 
 module.exports.renderPano = renderPano;
 
-async function renderPano(sourcePath, targetFolder, config, faceName) {
-    let srcImage;
+async function renderPano(sourcePath, targetFolder, config, faceNames) {
     const filesToZip = [];
     const startTime = performance.now();
 
-    faceName = faceName || defaultFaceName;
+    faceNames = faceNames || defaultFaceNames;
 
     console.log({sourcePath}, sourcePath.toLowerCase().endsWith('.psd') || sourcePath.toLowerCase().endsWith('.psb'));
 
     // load Source Image
+    let srcImage;
     console.log()
     console.log('+------------------------------------------------------------------------')
     console.log('| Load Image');
@@ -45,7 +46,11 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
         srcImage.on('begin', lineCount => b1.start(lineCount - 1, 0, {speed: "N/A"}));
         srcImage.on('progress', line => b1.update(line));
         srcImage.on('end', () => b1.stop())
-        await srcImage.load(sourcePath);
+        if (config.previewIgnore && config.tilesIgnore) {
+            await srcImage.loadHeaderOnly(sourcePath);
+        } else {
+            await srcImage.load(sourcePath);
+        }
     } else {
         srcImage = new IMG();
         if (!await srcImage.load(sourcePath)) {
@@ -53,12 +58,10 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
         }
     }
 
-    // equirectangular outer bound
+    // Equirectangular outer bound
     const outerWidth = config.panoAngle === 360 ? srcImage.width : Math.floor(srcImage.width * 360 / config.panoAngle);
     const outerHeight = Math.floor(outerWidth / 2);
     console.log({angel: config.panoAngle})
-    // const xAngle =  srcImage.width*180/outerWidth;
-    // const yAngle =  srcImage.height*180/outerHeight;
 
     // offset foy y-center pos
     const yShift = Math.floor(outerHeight * config.panoYOffset / 180);
@@ -67,27 +70,32 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
     console.log({outerWidth, outerHeight, srcImageWidth: srcImage.width, srcImageHeight: srcImage.height})
     console.log({xOff, yOff})
 
+    // Preview
     if (!config.previewIgnore) {
         preview1(config, srcImage, outerWidth, xOff, yOff, filesToZip);
         preview2(srcImage, config, filesToZip);
     }
 
-    let maxLevelToRender = 0;
-    const targetImageSize = config.targetImgSize || Math.floor(srcImage.width / 4);
+    // Tiles
+    const targetImageSize = calculateTargetImageSize(config.targetImgSize || Math.floor(srcImage.width / 4), config.tileSize);
+    console.log({targetImageSize});
+    let levels = calculateLevels(targetImageSize, config.tileSize)
     if (!config.tilesIgnore) {
-        maxLevelToRender = tiles(srcImage, outerWidth, xOff, yOff, faceName, targetImageSize, config, maxLevelToRender, targetFolder);
+        tiles(srcImage, outerWidth, xOff, yOff, faceNames, targetImageSize, config, levels.levelCount, targetFolder);
     }
 
+    // Html
     if (!config.htmlIgnore) {
         const hAngel = srcImage.height * 180 / outerHeight
         const area = {
             x: {min: config.panoAngle / -2, max: config.panoAngle / 2},
             y: {min: (hAngel / -2) + config.panoYOffset, max: (hAngel / 2) + config.panoYOffset}
         }
-        html(config, maxLevelToRender, targetImageSize, targetFolder, area);
+        html(config, levels, targetImageSize, targetFolder, area);
         filesToZip.push('./index.html')
     }
 
+    // Zip
     if (!config.zipIgnore) {
         await zip(config, filesToZip);
     }
@@ -98,6 +106,15 @@ async function renderPano(sourcePath, targetFolder, config, faceName) {
     console.log('+------------------------------------------------------------------------')
     console.log(`| finished in ${runtime}`);
     console.log('+------------------------------------------------------------------------')
+}
+
+function calculateTargetImageSize(minSize, tileSize){
+
+    let result = 0;
+    for(let e=0; result<minSize; ++e){
+        result = Math.pow(2, e) * tileSize;
+    }
+    return result;
 }
 
 function zip(config, filesToZip) {
@@ -163,7 +180,7 @@ function zip(config, filesToZip) {
     });
 }
 
-function html(config, maxLevelToRender, targetImageSize, targetFolder, area) {
+function html(config, levels, targetImageSize, targetFolder, area) {
     console.log()
     console.log('+------------------------------------------------------------------------')
     console.log('| Render Html')
@@ -172,23 +189,28 @@ function html(config, maxLevelToRender, targetImageSize, targetFolder, area) {
     let data = {
         tileSize: config.tileSize,
         autoLoad: true,
-        maxLevelToRender,
+        levels,
         targetImageSize,
         previewPath: config.previewPath,
         title: config.htmlTitle,
         area
     };
-    const html = pannellum.createHtml(data);
-    console.log({data})
+    console.log(JSON.stringify(data, null, 2))
+
+    let html;
+    html = pannellum.createHtml(data);
     fs.writeFileSync(path.resolve(targetFolder, 'index.html'), html)
+
+    html = marzipano.createHtml(data);
+    fs.writeFileSync(path.resolve(targetFolder, 'm.html'), html)
 }
 
-function tiles(srcImage, w, xOff, yOff, faceName, targetImageSize, config, maxLevelToRender, targetFolder) {
+function tiles(srcImage, w, xOff, yOff, faceNames, targetImageSize, config, levelCount, targetFolder) {
     const faceRenderer = new FaceRenderer(srcImage, w, xOff, yOff);
     for (let face = 0; face < 6; ++face) {
         console.log()
         console.log('+------------------------------------------------------------------------')
-        console.log(`| Render Face (${face + 1}/6) ${faceName[face].name}...`)
+        console.log(`| Render Face ${faceNames[face].name} (${targetImageSize}x${targetImageSize})px² (${face + 1}/6)`)
         console.log('+------------------------------------------------------------------------')
         faceRenderer.on('begin', count => b1.start(count - 1, 0, {speed: "N/A"}));
         faceRenderer.on('progress', v => b1.update(v));
@@ -197,10 +219,7 @@ function tiles(srcImage, w, xOff, yOff, faceName, targetImageSize, config, maxLe
         // faceImg.write(`./${faceName[face].filePrefix}_face.jpg`);
         console.log(`...done`)
 
-        const maxLevel = getMaxLevel(faceImg.width, faceImg.height, config.tileSize);
-        maxLevelToRender = Math.max(maxLevelToRender, maxLevel);
-
-        for (let level = maxLevel; level >= 0; level--) {
+        for (let level = levelCount; level >= 0; level--) {
             const levelPath = path.resolve(targetFolder, `${level + 1}`);
             fs.mkdirSync(levelPath, {recursive: true});
             console.log(`  Render Level: ${level}`)
@@ -211,7 +230,7 @@ function tiles(srcImage, w, xOff, yOff, faceName, targetImageSize, config, maxLe
             b1.start(imgCount, 0, {speed: "N/A"})
             for (let y = 0; y < countY; y++) {
                 for (let x = 0; x < countX; x++) {
-                    const tilePath = path.resolve(levelPath, `${faceName[face].filePrefix}${y}_${x}.png`);
+                    const tilePath = path.resolve(levelPath, `${faceNames[face].filePrefix}${y}_${x}.png`);
                     writeTile(faceImg, x, y, config.tileSize, config.tileQuality, tilePath);
                     b1.update((y * countX) + x + 1);
                 }
@@ -221,7 +240,6 @@ function tiles(srcImage, w, xOff, yOff, faceName, targetImageSize, config, maxLe
             faceImg = faceImg.newScaledByFactor(0.5);
         }
     }
-    return maxLevelToRender;
 }
 
 function preview1(config, srcImage, outerWidth, xOff, yOff, filesToZip) {
@@ -296,14 +314,22 @@ function writeTile(sourceImage, xOffset, yOffset, tileSize, tileQuality, path) {
     tile.write(path, {jpgQuality: tileQuality});
 }
 
-function getMaxLevel(imgX, imgY, tile) {
+function calculateLevels(imgSize, tileSize) {
+    const result = {levels: []};
     let level = 0;
-    while (imgX > tile || imgY > tile) {
+    while (imgSize >= tileSize) {
+        result.levels.push({tileSize, size: imgSize});
         level++;
-        imgX = Math.round(imgX * 0.5);
-        imgY = Math.round(imgY * 0.5);
+        imgSize = Math.round(imgSize * 0.5);
     }
-    return level;
+    result.levels.reverse();
+    level = 0;
+    result.levels.forEach(l=>{
+        l.level = level++;
+    })
+
+    result.levelCount = level;
+    return result;
 }
 
 function round(value, exp) {

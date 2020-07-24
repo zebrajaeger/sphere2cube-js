@@ -120,6 +120,11 @@ bl@^4.0.1:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
+bowser@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/bowser/-/bowser-2.7.0.tgz#96eab1fa07fab08c1ec4c75977a7c8ddf8e0fe1f"
+  integrity sha512-aIlMvstvu8x+34KEiOHD3AsBgdrzg6sxALYiukOWhFvGMbQI6TRP/iY0LMhUrHs56aD6P1G0Z7h45PUJaa5m9w==
+
 boxen@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/boxen/-/boxen-4.2.0.tgz#e411b62357d6d6d36587c8ac3d5d974daa070e64"
@@ -410,6 +415,11 @@ get-stream@^5.1.0:
   dependencies:
     pump "^3.0.0"
 
+gl-matrix@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/gl-matrix/-/gl-matrix-3.1.0.tgz#f5b2de17d8fed95a79e5025b10cded0ab9ccbed0"
+  integrity sha512-526NA+3EA+ztAQi0IZpSWiM0fyQXIp7IbRvfJ4wS/TjjQD0uv0fVybXwwqqSOlq33UckivI0yMDlVtboWm3k7A==
+
 glob-parent@~5.1.0:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.1.tgz#b6c1ef417c4e5663ea498f1c45afac6916bbc229"
@@ -457,6 +467,11 @@ graceful-fs@^4.1.2, graceful-fs@^4.2.0:
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.4.tgz#2256bde14d3632958c465ebc96dc467ca07a29fb"
   integrity sha512-WjKPNJF79dtJAVniUlGGWHYGz2jWxT6VhN/4m1NdkbZ2nOsEF+cI1Edgql5zCRhs/VsQYRvrXctxktVXZUkixw==
+
+hammerjs@2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/hammerjs/-/hammerjs-2.0.4.tgz#e161706d2e610ef295b16eadc515df7d9c59aa23"
+  integrity sha1-4WFwbS5hDvKVsW6txRXffZxZqiM=
 
 has-flag@^3.0.0:
   version "3.0.0"
@@ -673,10 +688,25 @@ make-dir@^3.0.0:
   dependencies:
     semver "^6.0.0"
 
+marzipano@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/marzipano/-/marzipano-0.9.1.tgz#38bed4dc71838bfeb8506c247021f288dbfa6817"
+  integrity sha512-oiMPvESMRHtW34nSOIC3pXREHbnFsD+Jcqim0KX70dBtET6SQ80UY9yl8VhPb7FHQPBn/r4Qit9SER/lpuwrLQ==
+  dependencies:
+    bowser "2.7.0"
+    gl-matrix "3.1.0"
+    hammerjs "2.0.4"
+    minimal-event-emitter "1.0.0"
+
 mimic-response@^1.0.0, mimic-response@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-1.0.1.tgz#4923538878eef42063cb8a3e3b0798781487ab1b"
   integrity sha512-j5EctnkH7amfV/q5Hgmoal1g2QHFJRraOtmx0JpIqkxhBhI/lJSl1nMpQ45hVarwNETOoWEimndZ4QK0RHxuxQ==
+
+minimal-event-emitter@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/minimal-event-emitter/-/minimal-event-emitter-1.0.0.tgz#9ce6203aaa1da7d6b62206c78a670212847e605b"
+  integrity sha512-jZFCw+HUAgVWGSnCpff4NaB1PRwNcnIYRN1hgaA1QfOxG5lBhNmqpmcVW/o2+28Pc8CxPImsipDNrfUQhHCukw==
 
 minimatch@^3.0.4:
   version "3.0.4"

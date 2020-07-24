@@ -42,61 +42,22 @@ module.exports.PSD = class PSD extends EventEmitter {
         }
     }
 
+
+    async loadHeaderOnly(path) {
+        return new Promise(async resolve => {
+            let {fd} = await this.readHeader(path);
+            await RandomAccessFile.close(fd);
+            resolve(true);
+        });
+    }
+
     async load(path) {
-        return new Promise(async (resolve, reject) => {
-            let buf;
-            let offset = 0;
-
-            const fileSize = RandomAccessFile.fileSize(path);
-            console.log('fileSize', fileSize);
-
-            const fd = await RandomAccessFile.open(path);
-
-            // File Header
-            buf = await RandomAccessFile.read(fd, offset, 26);
-            offset += 26;
-            console.log('Signature', buf.toString('UTF-8', 0, 3));
-            let version = buf.readUInt16BE(4); // PSD: 1; PSB: 2
-            console.log('Version', version);
-            this._channels = buf.readUInt16BE(12);
-            console.log('Channels', this._channels);
-            this._height = buf.readUInt32BE(14);
-            console.log('Height', this._height);
-            this._width = buf.readUInt32BE(18);
-            console.log('Width', this._width);
-            console.log('Depth', buf.readUInt16BE(22));
-            console.log('ColorMode', buf.readUInt16BE(24));
-
-            // Color Mode Data
-            buf = await RandomAccessFile.read(fd, offset, 4);
-            offset += 4;
-            let colorModeLength = buf.readUInt32BE(0);
-            console.log('Color Mode Data length', colorModeLength);
-            offset += colorModeLength;
-
-            // Image Resources
-            buf = await RandomAccessFile.read(fd, offset, 4);
-            offset += 4;
-            let imageResourceLength = buf.readUInt32BE(0);
-            console.log('Image Resources length', imageResourceLength);
-            offset += imageResourceLength;
-
-            // Layer and Mask Information
-            let layerAndMaskInformationLength;
-            if (version === 1) {
-                buf = await RandomAccessFile.read(fd, offset, 4);
-                offset += 4;
-                layerAndMaskInformationLength = buf.readUInt32BE(0);
-            } else {
-                buf = await RandomAccessFile.read(fd, offset, 8);
-                offset += 8;
-                layerAndMaskInformationLength = (buf.readUInt32BE(0) * Math.pow(2, 32)) + buf.readUInt32BE(4);
-            }
-            console.log('Layer and Mask Information length', layerAndMaskInformationLength);
+        return new Promise(async resolve => {
+            let {offset, fd, version} = await this.readHeader(path);
 
             // Image Data
             //  type    0:raw, 1:rle
-            buf = await RandomAccessFile.read(fd, offset, 2);
+            let buf = await RandomAccessFile.read(fd, offset, 2);
             offset += 2;
             let compression = buf.readUInt16BE(0);
             console.log('Compression', compression);
@@ -110,6 +71,60 @@ module.exports.PSD = class PSD extends EventEmitter {
 
             resolve(true);
         });
+    }
+
+    async readHeader(path) {
+        let buf;
+        let offset = 0;
+
+        const fileSize = RandomAccessFile.fileSize(path);
+        console.log('fileSize', fileSize);
+
+        const fd = await RandomAccessFile.open(path);
+
+        // File Header
+        buf = await RandomAccessFile.read(fd, offset, 26);
+        offset += 26;
+        console.log('Signature', buf.toString('UTF-8', 0, 3));
+        let version = buf.readUInt16BE(4); // PSD: 1; PSB: 2
+        console.log('Version', version);
+        this._channels = buf.readUInt16BE(12);
+        console.log('Channels', this._channels);
+        this._height = buf.readUInt32BE(14);
+        console.log('Height', this._height);
+        this._width = buf.readUInt32BE(18);
+        console.log('Width', this._width);
+        console.log('Depth', buf.readUInt16BE(22));
+        console.log('ColorMode', buf.readUInt16BE(24));
+
+        // Color Mode Data
+        buf = await RandomAccessFile.read(fd, offset, 4);
+        offset += 4;
+        let colorModeLength = buf.readUInt32BE(0);
+        console.log('Color Mode Data length', colorModeLength);
+        offset += colorModeLength;
+
+        // Image Resources
+        buf = await RandomAccessFile.read(fd, offset, 4);
+        offset += 4;
+        let imageResourceLength = buf.readUInt32BE(0);
+        console.log('Image Resources length', imageResourceLength);
+        offset += imageResourceLength;
+
+        // Layer and Mask Information
+        let layerAndMaskInformationLength;
+        if (version === 1) {
+            buf = await RandomAccessFile.read(fd, offset, 4);
+            offset += 4;
+            layerAndMaskInformationLength = buf.readUInt32BE(0);
+        } else {
+            buf = await RandomAccessFile.read(fd, offset, 8);
+            offset += 8;
+            layerAndMaskInformationLength = (buf.readUInt32BE(0) * Math.pow(2, 32)) + buf.readUInt32BE(4);
+        }
+        console.log('Layer and Mask Information length', layerAndMaskInformationLength);
+
+        return {offset, fd, version};
     }
 
     async readRAWData(buf, fd, offset) {

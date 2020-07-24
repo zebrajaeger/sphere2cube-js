@@ -26,7 +26,7 @@ function createHtml(data) {
     </head>
     <body>
     
-    <div id="panorama" class="panorma"></div>
+    <div id="panorama" class="panorma"/>
     
     <script>
         function checkSensor() {
@@ -61,7 +61,7 @@ function createHtml(data) {
                     "path": "/%l/%s%y_%x",
                     "extension": "png",
                     "tileResolution": ${data.tileSize},
-                    "maxLevel": ${data.maxLevelToRender + 1},
+                    "maxLevel": ${data.levels.levelCount},
                     "cubeResolution": ${data.targetImageSize},
                 }, 
                 "preview": "${data.previewPath}",
