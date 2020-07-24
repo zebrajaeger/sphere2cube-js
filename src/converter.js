@@ -40,6 +40,7 @@ async function renderPano(sourcePath, targetFolder, config, faceNames) {
     console.log({sourcePath}, sourcePath.toLowerCase().endsWith('.psd') || sourcePath.toLowerCase().endsWith('.psb'));
 
     // load Source Image
+    const swImg = new Stopwatch().begin();
     let srcImage;
     console.log()
     console.log('+------------------------------------------------------------------------')
@@ -61,6 +62,7 @@ async function renderPano(sourcePath, targetFolder, config, faceNames) {
             throw 'Unsupported image file type'
         }
     }
+    console.log(`Image loaded in ${swImg.getTimeString()}`)
 
     // Equirectangular outer bound
     const outerWidth = config.panoAngle === 360 ? srcImage.width : Math.floor(srcImage.width * 360 / config.panoAngle);
@@ -285,7 +287,7 @@ function previewCube(config, srcImage, outerWidth, xOff, yOff, targetPath) {
 
     previewImage.write(targetPath, {jpgQuality: config.previewCubeJpgQuality});
 
-    console.log(`Scaled preview generated in ${sw.getTimeString()}`);
+    console.log(`Cubic preview generated in ${sw.getTimeString()}`);
 }
 
 function previewScaled(srcImage, config, targetPath) {
@@ -327,7 +329,7 @@ function previewScaled(srcImage, config, targetPath) {
         previewImage = tempImg;
     }
 
-    console.log(`Cube preview generated in ${sw.getTimeString()}`);
+    console.log(`Scaled preview generated in ${sw.getTimeString()}`);
 }
 
 function createTile(sourceImage, xOffset, yOffset, tileSize) {

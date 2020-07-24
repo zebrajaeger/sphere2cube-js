@@ -69,8 +69,8 @@ class FaceRenderer extends EventEmitter {
                     throw err;
                 }
 
-                this.emit('progress', (edgeOut * i) + j);
             }
+            this.emit('progress', (edgeOut * i));
         }
         this.emit('end');
     }
@@ -91,7 +91,6 @@ class PreviewRenderer extends EventEmitter {
         const img = new IMG();
         img.create(previewWidth, previewWidth * 3 / 4);
 
-        // console.log('###', this.xOffset,  this.yOffset)
         this.convert(
             this.w,
             previewWidth,
@@ -173,7 +172,6 @@ class PreviewRenderer extends EventEmitter {
 
                 const xyz = this.outImgToXYZ(a, b, face2)
                 let rgba = calcPixel(xyz, inSize, getPixel);
-                // console.log({i,j,xyz,rgba})
 
                 setPixel(i, j, rgba);
             }
@@ -182,7 +180,6 @@ class PreviewRenderer extends EventEmitter {
 }
 
 function calcPixel(xyz, inSize, getPixel) {
-    // console.log('calcPixel',{xyz, inSize})
     const theta = Math.atan2(xyz.y, xyz.x) // range -pi to pi
     const r = Math.hypot(xyz.x, xyz.y)
     const phi = Math.atan2(xyz.z, r) // range -pi/2 to pi/2
@@ -201,13 +198,11 @@ function calcPixel(xyz, inSize, getPixel) {
 
     // Pixel values of four corners
     try {
-        // console.log('calcPixel',u1 % inSize.x, clip(v1, 0, inSize.y - 1))
         const A = getPixel(u1 % inSize.x, clip(v1, 0, inSize.y - 1));
         const B = getPixel(u2 % inSize.x, clip(v1, 0, inSize.y - 1))
         const C = getPixel(u1 % inSize.x, clip(v2, 0, inSize.y - 1))
         const D = getPixel(u2 % inSize.x, clip(v2, 0, inSize.y - 1))
 
-        // console.log({A,B,C,D})
         // interpolate
         return {
             r: Math.floor(A.r * (1 - mu) * (1 - nu) + B.r * (mu) * (1 - nu) + C.r * (1 - mu) * nu + D.r * mu * nu),

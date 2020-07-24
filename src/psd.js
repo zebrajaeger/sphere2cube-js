@@ -42,7 +42,6 @@ module.exports.PSD = class PSD extends EventEmitter {
         }
     }
 
-
     async loadHeaderOnly(path) {
         return new Promise(async resolve => {
             let {fd} = await this.readHeader(path);
@@ -136,7 +135,9 @@ module.exports.PSD = class PSD extends EventEmitter {
             buf = await RandomAccessFile.read(fd, offset, this.width);
             this._lines.push(buf)
             offset += this.width;
-            this.emit('progress', x);
+            if (x % 100 === 0) {
+                this.emit('progress', x);
+            }
         }
         this.emit('end');
     }
@@ -163,7 +164,7 @@ module.exports.PSD = class PSD extends EventEmitter {
                 lineSizes.push(buf.readUInt32BE(i << 2));
             }
         }
-        console.log('Line SIzes', lineSizes);
+        console.log('Line Sizes', lineSizes);
         console.log('offset', offset);
 
         console.log('Read Image Data.');
@@ -174,9 +175,10 @@ module.exports.PSD = class PSD extends EventEmitter {
             buf = await RandomAccessFile.read(fd, offset, lineSizes[x]);
             let l = packbits.decode(buf);
             this._lines.push(l)
-            // console.log(`index:${x} length: ${l.length}`);
             offset += lineSizes[x];
-            this.emit('progress', x);
+            if (x % 100 === 0) {
+                this.emit('progress', x);
+            }
         }
         this.emit('end');
     }
