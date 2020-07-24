@@ -70,8 +70,12 @@ class FaceRenderer extends EventEmitter {
                 }
 
             }
-            this.emit('progress', (edgeOut * i));
+            if(i%100===0){
+                this.emit('progress', (edgeOut * i));
+            }
         }
+
+        this.emit('progress', edgeOut * edgeOut);
         this.emit('end');
     }
 }

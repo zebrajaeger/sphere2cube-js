@@ -1,6 +1,7 @@
 const {RandomAccessFile} = require('./randomaccessfile');
 const EventEmitter = require('events');
 const packbits = require('@fiahfy/packbits');
+const xml2js = require('xml2js');
 
 module.exports.PSD = class PSD extends EventEmitter {
     _lines = [];
@@ -9,7 +10,7 @@ module.exports.PSD = class PSD extends EventEmitter {
     _channels;
     _backgroundColor = {r: 0, g: 0, b: 0, a: 0}
 
-    constructor(path) {
+    constructor() {
         super();
     }
 
@@ -108,6 +109,9 @@ module.exports.PSD = class PSD extends EventEmitter {
         offset += 4;
         let imageResourceLength = buf.readUInt32BE(0);
         console.log('Image Resources length', imageResourceLength);
+        buf = await RandomAccessFile.read(fd, offset, imageResourceLength);
+        this.parseImageResource(buf);
+
         offset += imageResourceLength;
 
         // Layer and Mask Information
@@ -126,6 +130,63 @@ module.exports.PSD = class PSD extends EventEmitter {
         return {offset, fd, version};
     }
 
+    parseImageResource(buf) {
+        let idx = 0;
+        const signature = buf.toString('utf8', 0, 4);
+        for (; idx < buf.length;) {
+
+            if (signature === '8BIM') {
+                idx += 4;
+                const id = buf.readUInt16BE(idx);
+                idx += 2;
+                let name = '';
+                for (; ;) {
+                    const a = buf[idx];
+                    const b = buf[idx + 1];
+                    idx += 2;
+                    if (b === 0) {
+                        if (a !== 0) {
+                            name += String.fromCharCode(a);
+                        }
+                        break;
+                    } else {
+                        name += String.fromCharCode(a);
+                        name += String.fromCharCode(b);
+                    }
+                }
+                const size = buf.readUInt32BE(idx);
+                idx += 4;
+                const data = buf.subarray(idx, idx + size);
+                console.log({id, name, size})
+                idx += size;
+                if (id === 1058) {
+                    // EXIF Data 1
+                    // console.log('EXIF Data 1', data.toString());
+                }
+                if (id === 1059) {
+                    // EXIF Data 3
+                    // console.log('EXIF Data 3', data.toString());
+                }
+                if (id === 1060) {
+                    // XMP metadata
+                    console.log('XMP metadata', data.toString());
+                    const parser = new xml2js.Parser();
+                    try {
+                        parser.parseString(data.toString(), (e, d) => {
+                            // https://developers.google.com/streetview/spherical-metadata?hl=de
+                            d = d['x:xmpmeta']['rdf:RDF'][0]['rdf:Description'][1]['$']
+                            console.log(JSON.stringify(d, null, 2))
+
+                        })
+                    } catch (err) {
+                        console.log(err)
+                    }
+                }
+                //console.log(buf.toString())
+            }
+        }
+    }
+
     async readRAWData(buf, fd, offset) {
         console.log('read RAW Data');
         this._lines = [];
@@ -139,6 +200,7 @@ module.exports.PSD = class PSD extends EventEmitter {
                 this.emit('progress', x);
             }
         }
+        this.emit('progress', lineCount);
         this.emit('end');
     }
 
@@ -171,7 +233,6 @@ module.exports.PSD = class PSD extends EventEmitter {
 
         this.emit('begin', lineCount);
         for (let x = 0; x < lineCount; ++x) {
-            // console.log(x, lineSizes[x])
             buf = await RandomAccessFile.read(fd, offset, lineSizes[x]);
             let l = packbits.decode(buf);
             this._lines.push(l)
@@ -180,6 +241,7 @@ module.exports.PSD = class PSD extends EventEmitter {
                 this.emit('progress', x);
             }
         }
+        this.emit('progress', lineCount);
         this.emit('end');
     }
 }

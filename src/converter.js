@@ -44,7 +44,7 @@ async function renderPano(sourcePath, targetFolder, config, faceNames) {
     let srcImage;
     console.log()
     console.log('+------------------------------------------------------------------------')
-    console.log('| Load Image');
+    console.log(`| Load Image '${sourcePath}'`);
     console.log('+------------------------------------------------------------------------')
     if (sourcePath.toLowerCase().endsWith('.psd') || sourcePath.toLowerCase().endsWith('.psb')) {
         srcImage = new PSD();
