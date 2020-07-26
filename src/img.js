@@ -56,10 +56,11 @@ module.exports.IMG = class IMG extends EventEmitter {
             this._height = rawImageData.height;
             return true;
         } else if (this.isPng(path)) {
-            const data = fs.readFileSync('in.png');
+            const data = fs.readFileSync(path);
             const png = PNG.sync.read(data);
-            console.log({png});
-            throw "please implement me"
+            this._data = png.data;
+            this._width = png.width;
+            this._height = png.height;
         }
         return false;
     }

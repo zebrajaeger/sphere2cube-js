@@ -12,6 +12,7 @@ class FaceRenderer extends EventEmitter {
     }
 
     render(face, outImgSize) {
+        console.log('FaceRenderer.render', {face, outImgSize})
         const img = new IMG();
         img.create(outImgSize, outImgSize);
         img.fill({r: 0, g: 0, b: 0, a: 0});

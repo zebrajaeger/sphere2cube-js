@@ -13,7 +13,7 @@ Convert
 Reads 
 - PSD and PSB with RAW or RLE Encoding
 - jpg
-- png (TODO)
+- png
 
 Writes
 - preview (cubic)
@@ -41,27 +41,38 @@ $ createpano -i sourceimage.psd
 Usage: cli [options]
 
 Options:
-  -V, --version                    output the version number
-  -i, --input <path>               Input image (mandatory)
-  -pa, --panoAngle <degree>        Angle of pano (default: "360")
-  -py, --panoYOffset <degree>      Y-Offset in degree [-90.0...90.0] (default: "0")
-  -o, --output <path>              Output folder (default: ".")
-  -te, --targetSize <pixel>        Image edge length of a face @ max resolution (default: inputImage.x / 4)
-  -ti, --tilesIgnore               Dont render tiles
-  -ts, --tileSize <pixel>          Tile size (default: "512")
-  -tq, --tileQuality <percent>     Jpg Image quality of tiles in percent (default: "85")
-  -pi, --previewIgnore             Dont render preview
-  -pp, --previewPath <path>        path and name of preiew image (default: "./preview.png")
-  -pw, --previewWidth <pixel>      Preview width (default: "1000")
-  -pw, --previewQuality <percent>  Preview quality in percent (default: "85")
-  -hi, --htmlIgnore                Don't render html
-  -ht, --htmlTitle <name>          Head-Title-Tag (default: inputImage)
-  -zi, --zipIgnore                 Don't zip
-  -zp, --zipPath <path>            Path for Zip File (default: "pano.zip")
-  -v, --verbose                    verbose
-  -h, --help                       display help for command
-
-
+  -V, --version                              output the version number
+  -i, --source <path>                        Source image (mandatory)
+  -ipa, --panoAngle <degree>                 Angle of pano (default: "360")
+  -ipy, --panoYOffset <degree>               Y-Offset in degree [-90.0...90.0] (default: "0")
+  -o, --output <path>                        Output folder (default: "_dist")
+  -te, --targetSize <pixel>                  Image edge length of a face @ max resolution (default: inputImage.x / 4)
+  -fr, --facesToRender <faces>               Faces To render (default: "flrbud")
+  -ti, --tilesIgnore                         Dont render tiles
+  -ts, --tileSize <pixel>                    Tile size (default: "512")
+  -tq, --tileJpgQuality <percent>            Jpg Image quality of tiles in percent (default: "85")
+  -tp, --tilePathTemplate <template>         Tile path template (default: "{{levelCount}}/{{face}}{{y}}_{{x}}.{{fileType}}")
+  -tpt, --tilePathType <type>                Tile image type (default: "jpg")
+  -c, --renderCube                           Render cube sites in full resolution
+  -cp, --cubePath <path>                     Cube sites path (default: "{{face}}.jpg")
+  -cq, --cubeJpgQuality <percent>            Cube Jpg Image quality (default: "85")
+  -pi, --previewIgnore                       Dont render preview
+  -pcp, --previewCubePath <path>             path and name of preview image (default: "preview.q.jpg")
+  -pcq, --previewCubeJpgQuality <percent>    Preview quality in percent (default: "85")
+  -psp, --previewScaledPath <path>           path and name of preview image (default: "preview.s.jpg")
+  -psq, --previewScaledJpgQuality <percent>  Preview quality in percent (default: "85")
+  -pw, --previewWidth <pixel>                Preview width (default: "1000")
+  -sp, --signaturImagePath <path>            Signature image
+  -ss, --signaturSide <side>                 Signature side (default: "d")
+  TODO: -sb, --signaturBelow                       Signature below pano image
+  -hi, --htmlIgnore                          Don't render html
+  -ht, --htmlTitle <name>                    Head-Title-Tag (default: inputImage)
+  -hpp, --htmlPannellumFile <path>           Path of Pannellum .html file (default: "index.p.html")
+  -hmp, --htmlMarzipanoFile <path>           Path of Marzipano .html file (default: "index.m.html")
+  -zi, --zipIgnore                           Don't zip
+  -zp, --zipPath <path>                      Path for Zip File (default: "pano.zip")
+  -v, --verbose                              verbose
+  -h, --help                                 display help for command
 ```
 
 ## Preview
@@ -73,6 +84,9 @@ Options:
 ### Cubic
 
 ![dsf](./doc/preview.png)
+
+## TODO
+- preview image for marzipano
 
 ## Many Thanks to
 

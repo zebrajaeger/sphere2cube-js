@@ -16,49 +16,52 @@ const {Stopwatch} = require('./stopwatch');
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_grey)
 
-module.exports.defaultFaceNames = defaultFaceNames = {
-    0: {filePrefix: 'b', name: 'Back'},
-    1: {filePrefix: 'l', name: 'Left'},
-    2: {filePrefix: 'f', name: 'Front'},
-    3: {filePrefix: 'r', name: 'Right'},
-    4: {filePrefix: 'u', name: 'Top'},
-    5: {filePrefix: 'd', name: 'Bottom'}
+const defaultFaceNames = {
+    0: {filePrefix: 'b', index: 0, name: 'Back'},
+    1: {filePrefix: 'l', index: 1, name: 'Left'},
+    2: {filePrefix: 'f', index: 2, name: 'Front'},
+    3: {filePrefix: 'r', index: 3, name: 'Right'},
+    4: {filePrefix: 'u', index: 4, name: 'Top'},
+    5: {filePrefix: 'd', index: 5, name: 'Bottom'},
+    'b': {filePrefix: 'b', index: 0, name: 'Back'},
+    'l': {filePrefix: 'l', index: 1, name: 'Left'},
+    'f': {filePrefix: 'f', index: 2, name: 'Front'},
+    'r': {filePrefix: 'r', index: 3, name: 'Right'},
+    'u': {filePrefix: 'u', index: 4, name: 'Top'},
+    'd': {filePrefix: 'd', index: 5, name: 'Bottom'},
 };
 
 module.exports.renderPano = renderPano;
 
-async function renderPano(sourcePath, targetFolder, config, faceNames) {
-    // let t = twig({data:'aaa{{foo}}bbb'})
-    // console.log(t.render({foo:'bar'}));
-    // return;
+async function renderPano(config) {
     const zipSource = {files: [], folders: []};
 
     const overallStopwatch = new Stopwatch().begin();
 
-    faceNames = faceNames || defaultFaceNames;
+    // faceNames = faceNames || defaultFaceNames;
 
-    console.log({sourcePath}, sourcePath.toLowerCase().endsWith('.psd') || sourcePath.toLowerCase().endsWith('.psb'));
+    console.log(config.sourceImage.toLowerCase().endsWith('.psd') || config.sourceImage.toLowerCase().endsWith('.psb'));
 
     // load Source Image
     const swImg = new Stopwatch().begin();
     let srcImage;
     console.log()
     console.log('+------------------------------------------------------------------------')
-    console.log(`| Load Image '${sourcePath}'`);
+    console.log(`| Load Image '${config.sourceImage}'`);
     console.log('+------------------------------------------------------------------------')
-    if (sourcePath.toLowerCase().endsWith('.psd') || sourcePath.toLowerCase().endsWith('.psb')) {
+    if (config.sourceImage.toLowerCase().endsWith('.psd') || config.sourceImage.toLowerCase().endsWith('.psb')) {
         srcImage = new PSD();
         srcImage.on('begin', lineCount => progressBar.start(lineCount - 1, 0, {speed: "N/A"}));
         srcImage.on('progress', line => progressBar.update(line));
         srcImage.on('end', () => progressBar.stop())
-        if (config.previewIgnore && config.tilesIgnore) {
-            await srcImage.loadHeaderOnly(sourcePath);
+        if (config.previewIgnore && config.tilesIgnore && !config.renderCube) {
+            await srcImage.loadHeaderOnly(config.sourceImage);
         } else {
-            await srcImage.load(sourcePath);
+            await srcImage.load(config.sourceImage);
         }
     } else {
         srcImage = new IMG();
-        if (!await srcImage.load(sourcePath)) {
+        if (!await srcImage.load(config.sourceImage)) {
             throw 'Unsupported image file type'
         }
     }
@@ -77,9 +80,9 @@ async function renderPano(sourcePath, targetFolder, config, faceNames) {
     console.log({xOff, yOff})
 
     // Preview
-    const previewCubedPath = getPathAndCreateDir(targetFolder, config.previewCubePath);
+    const previewCubedPath = getPathAndCreateDir(config.targetFolder, config.previewCubePath);
     zipSource.files.push(previewCubedPath);
-    const previewScaledPath = getPathAndCreateDir(targetFolder, config.previewScaledPath);
+    const previewScaledPath = getPathAndCreateDir(config.targetFolder, config.previewScaledPath);
     zipSource.files.push(previewScaledPath);
 
     if (!config.previewIgnore) {
@@ -93,13 +96,13 @@ async function renderPano(sourcePath, targetFolder, config, faceNames) {
     let levels = calculateLevels(targetImageSize, config.tileSize);
     // TODO levels may not the first part of path
     for (let i = 1; i <= levels.levelCount; ++i) {
-        const folderPath = path.resolve(targetFolder, i.toString());
+        const folderPath = path.resolve(config.targetFolder, i.toString());
         zipSource.folders.push(folderPath);
     }
     console.log(JSON.stringify(levels, null, 2))
-    if (!config.tilesIgnore) {
-        tiles(srcImage, outerWidth, xOff, yOff, faceNames, targetImageSize, config, levels, targetFolder);
-    }
+    // if (!config.tilesIgnore) {
+    await tiles(srcImage, outerWidth, xOff, yOff, defaultFaceNames, targetImageSize, config, levels);
+    // }
 
     // Html
     const hAngel = srcImage.height * 180 / outerHeight
@@ -112,8 +115,8 @@ async function renderPano(sourcePath, targetFolder, config, faceNames) {
         levels,
         targetImageSize,
         area,
-        pannellumPath: getPathAndCreateDir(targetFolder, config.htmlPannellumFile),
-        marzipanoPath: getPathAndCreateDir(targetFolder, config.htmlMarzipanoFile)
+        pannellumPath: getPathAndCreateDir(config.targetFolder, config.htmlPannellumFile),
+        marzipanoPath: getPathAndCreateDir(config.targetFolder, config.htmlMarzipanoFile)
     };
     console.log(JSON.stringify(data, null, 2))
     zipSource.files.push(data.pannellumPath);
@@ -124,7 +127,7 @@ async function renderPano(sourcePath, targetFolder, config, faceNames) {
 
     // Zip
     if (!config.zipIgnore) {
-        await zip(config, zipSource, targetFolder);
+        await zip(config, zipSource);
     }
 
     console.log();
@@ -142,7 +145,7 @@ function calculateTargetImageSize(minSize, tileSize) {
     return result;
 }
 
-function zip(config, zipSource, targetFolder) {
+function zip(config, zipSource) {
     return new Promise((resolve, reject) => {
         const sw = new Stopwatch().begin();
 
@@ -154,7 +157,7 @@ function zip(config, zipSource, targetFolder) {
         let progress = false;
 
         // zip stream
-        const zipFilePath = getPathAndCreateDir(targetFolder, config.zipPath);
+        const zipFilePath = getPathAndCreateDir(config.targetFolder, config.zipPath);
         let zipStream = fs.createWriteStream(zipFilePath);
         zipStream.on('close', () => {
             console.log(`File Size: ${prettyBytes(archive.pointer())}`);
@@ -221,60 +224,119 @@ function html(config, data) {
     console.log(`Html generated in ${sw.getTimeString()}`);
 }
 
-function tiles(srcImage, w, xOff, yOff, faceNames, targetImageSize, config, levels, targetFolder) {
+async function tiles(srcImage, w, xOff, yOff, faceNames, targetImageSize, config, levels) {
     const swAll = new Stopwatch().begin();
 
-    const faceRenderer = new FaceRenderer(srcImage, w, xOff, yOff);
-    for (let face = 0; face < 6; ++face) {
+    // load Signature Image
+    let signatureImage;
+    if (config.signaturImagePath && config.signaturSide.length > 0) {
+        console.log(`Load signature image: '${config.signaturImagePath}'`)
+        signatureImage = new IMG();
+        await signatureImage.load(config.signaturImagePath);
+    }
+
+    // faces to render
+    for (const f of config.facesToRender) {
         const swFace = new Stopwatch().begin();
+
+        const face = defaultFaceNames[f];
         console.log()
         console.log('+------------------------------------------------------------------------')
-        console.log(`| Render Face Tiles ${faceNames[face].name} (${targetImageSize}x${targetImageSize})px² (${face + 1}/6)`)
+        console.log(`| Render Face Tiles '${face.name}' (${targetImageSize}x${targetImageSize})px² (${face.index + 1}/6)`)
         console.log('+------------------------------------------------------------------------')
 
+        const faceRenderer = new FaceRenderer(srcImage, w, xOff, yOff);
         console.log('Render Face');
         faceRenderer.on('begin', count => progressBar.start(count - 1, 0, {speed: "N/A"}));
         faceRenderer.on('progress', v => progressBar.update(v));
         faceRenderer.on('end', () => progressBar.stop())
-        let faceImg = faceRenderer.render(face, targetImageSize);
+        let faceImg = faceRenderer.render(face.index, targetImageSize);
         console.log(`Face rendered ${swFace.getTimeString()}`);
         console.log();
-        console.log('Create Tiles');
-        swFace.begin();
-        const tilePathTemplate = twig({data: config.tilePathTemplate});
-        for (let level = levels.levelCount; level > 0; level--) {
-            console.log(`  Render Level: ${level}`)
-            const countX = Math.ceil(faceImg.height / config.tileSize);
-            const countY = Math.ceil(faceImg.width / config.tileSize);
 
-            const imgCount = countX * countY;
-            progressBar.start(imgCount, 0, {speed: "N/A"})
-            for (let y = 0; y < countY; y++) {
-                for (let x = 0; x < countX; x++) {
+        // Set signature image
+        if (signatureImage && config.signaturSide.indexOf(f) !== -1) {
+            console.log(`Set signature image ${swFace.getTimeString()}`);
+            console.log();
+            const offX = (targetImageSize - signatureImage.width) / 2;
+            const offY = (targetImageSize - signatureImage.height) / 2;
+            for (let y = 0; y < signatureImage.height; ++y) {
+                for (let x = 0; x < signatureImage.width; ++x) {
 
-                    let tilePath = tilePathTemplate.render({
-                        levelCount: level,
-                        levelIndex: level - 1,
-                        face: faceNames[face].filePrefix,
-                        fileType: config.tileFileType,
-                        x, y
-                    })
-                    const tile = createTile(faceImg, x, y, config.tileSize);
-                    tile.write(getPathAndCreateDir(targetFolder, tilePath), {jpgQuality: config.tileJpgQuality});
-                    progressBar.update((y * countX) + x + 1);
+                    // https://de.wikipedia.org/wiki/Alpha_Blending
+                    let A = signatureImage.getPixel(x, y);
+                    let B = faceImg.getPixel(x + offX, y + offY);
+                    if (config.signaturBelow) {
+                        let x = A;
+                        A = B;
+                        B = x;
+                    }
+
+                    const a_A = A.a / 255;
+                    const a_NA = 1 - a_A;
+                    const b_A = B.a / 255;
+                    const a_C = a_A + (a_NA * b_A);
+                    const pixel = {
+                        r: ((B.r * a_NA * b_A) + (A.r * a_A)) / a_C,
+                        g: ((B.g * a_NA * b_A) + (A.g * a_A)) / a_C,
+                        b: ((B.b * a_NA * b_A) + (A.b * a_A)) / a_C,
+                        a: a_C
+                    }
+
+                    faceImg.setPixel(x + offX, y + offY, pixel);
                 }
             }
-            progressBar.stop()
-
-            faceImg = faceImg.newScaledByFactor(0.5);
         }
-        console.log(`Face tiles created in ${swFace.getTimeString()}`);
+
+        // Save cube face
+        if (config.renderCube) {
+            const cubePathTemplate = twig({data: config.cubePath});
+            const facePath = cubePathTemplate.render({face: f})
+            const absFacePath = getPathAndCreateDir(config.targetFolder, facePath)
+            console.log(`Render cube side to '${absFacePath}'`);
+
+            faceImg.write(absFacePath, {jpgQuality: config.cubeJpgQuality});
+        }
+
+        // create and store tiles
+        if (!config.tilesIgnore) {
+            console.log('Create Tiles');
+            swFace.begin();
+            const tilePathTemplate = twig({data: config.tilePathTemplate});
+            for (let level = levels.levelCount; level > 0; level--) {
+                console.log(`  Render Level: ${level}`)
+                const countX = Math.ceil(faceImg.height / config.tileSize);
+                const countY = Math.ceil(faceImg.width / config.tileSize);
+
+                const imgCount = countX * countY;
+                progressBar.start(imgCount, 0, {speed: "N/A"})
+                for (let y = 0; y < countY; y++) {
+                    for (let x = 0; x < countX; x++) {
+
+                        let tilePath = tilePathTemplate.render({
+                            levelCount: level,
+                            levelIndex: level - 1,
+                            face: face.filePrefix,
+                            fileType: config.tileFileType,
+                            x, y
+                        })
+                        const tile = createTile(faceImg, x, y, config.tileSize);
+                        tile.write(getPathAndCreateDir(config.targetFolder, tilePath), {jpgQuality: config.tileJpgQuality});
+                        progressBar.update((y * countX) + x + 1);
+                    }
+                }
+                progressBar.stop()
+
+                faceImg = faceImg.newScaledByFactor(0.5);
+            }
+            console.log(`Face tiles created in ${swFace.getTimeString()}`);
+        }
     }
 
     console.log(`All tiles created in ${swAll.getTimeString()}`);
 }
 
-function previewCube(config, srcImage, outerWidth, xOff, yOff, targetPath) {
+function previewCube(config, srcImage, outerWidth, xOff, yOff, previewCubedPath) {
     const sw = new Stopwatch().begin();
 
     console.log()
@@ -285,7 +347,7 @@ function previewCube(config, srcImage, outerWidth, xOff, yOff, targetPath) {
     const previewRenderer = new PreviewRenderer(srcImage, outerWidth, xOff, yOff);
     const previewImage = previewRenderer.render(config.previewWidth);
 
-    previewImage.write(targetPath, {jpgQuality: config.previewCubeJpgQuality});
+    previewImage.write(previewCubedPath, {jpgQuality: config.previewCubeJpgQuality});
 
     console.log(`Cubic preview generated in ${sw.getTimeString()}`);
 }
@@ -374,11 +436,18 @@ function getPathAndCreateDir(targetFolder, filePath) {
     return absoluteFilePath;
 }
 
-function showMemoryUsage(){
+function clipColor(c) {
+    return c;
+    // if (c < 0) return 0;
+    // if (c > 255) return 255;
+    // return Math.round(c)
+}
+
+function showMemoryUsage() {
     const used = process.memoryUsage();
     let res = [];
     for (let key in used) {
-        res.push( `${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+        res.push(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
     }
     console.log(res.join(' / '))
 }

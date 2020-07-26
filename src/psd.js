@@ -31,6 +31,7 @@ module.exports.PSD = class PSD extends EventEmitter {
     }
 
     getPixel(x, y) {
+        // console.log(this._lines)
         if (x < 0 || x >= this._width || y < 0 || y >= this._height) {
             return this._backgroundColor;
         } else {
