@@ -1,6 +1,6 @@
 {
   "name": "@zebrajaeger/createpano",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Converter for images to panoramic viewer",
   "main": "src/index.js",
   "scripts": {
