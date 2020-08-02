@@ -88,6 +88,12 @@ Options:
 
 ![dsf](./doc/preview.png)
 
+## TODO
+
+- Flat image example
+- Config read/write
+- zip refactoring 
+
 ## Many Thanks to
 
 - https://stackoverflow.com/questions/29678510/convert-21-equirectangular-panorama-to-cube-map
