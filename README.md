@@ -2,7 +2,6 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@zebrajaeger/createpano.svg?style=flat)](https://www.npmjs.org/package/@zebrajaeger/createpano)
 [![Install Size](https://packagephobia.now.sh/badge?p=@zebrajaeger/createpano)](https://packagephobia.now.sh/result?p=@zebrajaeger/createpano)
-![npm bundle size (scoped)](https://img.shields.io/bundlephobia/min/@zebrajaeger/createpano)
 [![License](https://img.shields.io/github/license/zebrajaeger/sphere2cube-js)](https://img.shields.io/github/license/zebrajaeger/sphere2cube-js)
 
 Convert
@@ -92,4 +91,5 @@ Options:
 ## Many Thanks to
 
 - https://stackoverflow.com/questions/29678510/convert-21-equirectangular-panorama-to-cube-map
+- https://de.wikipedia.org/wiki/Alpha_Blending
 - https://stackoverflow.com/questions/1726630/formatting-a-number-with-exactly-two-decimals-in-javascript
