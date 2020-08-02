@@ -93,7 +93,6 @@ Made here: 47.162081, 10.923371
 ## TODO
 
 - Flat image example
-- Config read/write
 - zip refactoring
 - parse exif data (needed?)
 - parse xmp (for Autopano Giga, but GoPro seems to let it die. So needed?)
