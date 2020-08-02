@@ -19,9 +19,9 @@ function createHtml(config, data) {
     <div id="pano" class="pano"></div>
     <script>
         let panoElement = document.getElementById('pano');
-        let viewer = new Marzipano.Viewer(panoElement, {})
+        let viewer = new Marzipano.Viewer(panoElement)
         let geometry = new Marzipano.CubeGeometry(${JSON.stringify(data.levels.levels)});
-        let source = Marzipano.ImageUrlSource.fromString('');
+        let source = Marzipano.ImageUrlSource.fromString('',{cubeMapPreviewUrl:'${config.previewFlatPath}'});
         source._sourceFromTile = (tile)=>{
             return {url:\`\${tile.z + 1}/\${tile.face}\${tile.y}_\${tile.x}.${config.tileFileType}\`};
         }

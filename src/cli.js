@@ -36,10 +36,13 @@ program
 
     // Preview
     .option('-pi, --previewIgnore', 'Dont render preview', 'false')
-    .option('-pcp, --previewCubePath <path>', 'path and name of preview image', 'preview.q.jpg')
+    .option('-pcp, --previewCubePath <path>', 'Path and name of preview image', 'preview.q.jpg')
     .option('-pcq, --previewCubeJpgQuality <percent>', 'Preview quality in percent', '85')
-    .option('-psp, --previewScaledPath <path>', 'path and name of preview image', 'preview.s.jpg')
-    .option('-psf, --previewScaledFactor <path>', 'Factor for one Downscaling', Math.sqrt(2))
+    .option('-pfp, --previewFlatPath <path>', 'Path and name of preview image', 'preview.f.jpg')
+    .option('-pfo, --previewFlatOrder <path>', 'Face order from left to right', 'bdflru')
+    .option('-pfq, --previewFlatJpgQuality <percent>', 'Preview quality in percent', '85')
+    .option('-psp, --previewScaledPath <path>', 'Path and name of preview image', 'preview.s.jpg')
+    .option('-psf, --previewScaledFactor <path>', 'Factor for one Downscaling', Math.sqrt(2).toString())
     .option('-psq, --previewScaledJpgQuality <percent>', 'Preview quality in percent', '85')
     .option('-pw, --previewWidth <pixel>', 'Preview width', '1000')
 
@@ -98,6 +101,9 @@ const cfg = {
     previewWidth: parseInt(program.previewWidth, 10),
     previewCubePath: program.previewCubePath,
     previewCubeJpgQuality: parseInt(program.previewCubeJpgQuality, 10),
+    previewFlatPath: program.previewFlatPath,
+    previewFlatJpgQuality: parseInt(program.previewFlatJpgQuality, 10),
+    previewFlatOrder: program.previewFlatOrder,
     previewScaledPath: program.previewScaledPath,
     previewScaledFactor: parseFloat(program.previewScaledFactor),
     previewScaledJpgQuality: parseInt(program.previewScaledJpgQuality, 10),

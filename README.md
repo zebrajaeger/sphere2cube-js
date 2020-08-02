@@ -57,14 +57,18 @@ Options:
   -cp, --cubePath <path>                     Cube sites path (default: "{{face}}.jpg")
   -cq, --cubeJpgQuality <percent>            Cube Jpg Image quality (default: "85")
   -pi, --previewIgnore                       Dont render preview
-  -pcp, --previewCubePath <path>             path and name of preview image (default: "preview.q.jpg")
+  -pcp, --previewCubePath <path>             Path and name of preview image (default: "preview.q.jpg")
   -pcq, --previewCubeJpgQuality <percent>    Preview quality in percent (default: "85")
-  -psp, --previewScaledPath <path>           path and name of preview image (default: "preview.s.jpg")
+  -pfp, --previewFlatPath <path>             Path and name of preview image (default: "preview.f.jpg")
+  -pfo, --previewFlatOrder <path>            Face order from left to right (default: "bdflru")
+  -pfq, --previewFlatJpgQuality <percent>    Preview quality in percent (default: "85")
+  -psp, --previewScaledPath <path>           Path and name of preview image (default: "preview.s.jpg")
+  -psf, --previewScaledFactor <path>         Factor for one Downscaling (default: "1.4142135623730951")
   -psq, --previewScaledJpgQuality <percent>  Preview quality in percent (default: "85")
   -pw, --previewWidth <pixel>                Preview width (default: "1000")
   -sp, --signaturImagePath <path>            Signature image
   -ss, --signaturSide <side>                 Signature side (default: "d")
-  TODO: -sb, --signaturBelow                       Signature below pano image
+  -sb, --signaturBelow                       Signature below pano image
   -hi, --htmlIgnore                          Don't render html
   -ht, --htmlTitle <name>                    Head-Title-Tag (default: inputImage)
   -hpp, --htmlPannellumFile <path>           Path of Pannellum .html file (default: "index.p.html")
@@ -84,9 +88,6 @@ Options:
 ### Cubic
 
 ![dsf](./doc/preview.png)
-
-## TODO
-- preview image for marzipano
 
 ## Many Thanks to
 

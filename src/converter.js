@@ -7,7 +7,7 @@ const prettyBytes = require('pretty-bytes');
 const twig = require('twig').twig;
 
 const {PSD} = require('./psd');
-const {IMG,BigIMG} = require('./img');
+const {IMG, BigIMG} = require('./img');
 const {Bilinear} = require('./scale');
 const pannellum = require('./pannellum');
 const marzipano = require('./marzipano');
@@ -68,6 +68,11 @@ async function renderPano(config) {
     console.log(`Image loaded in ${swImg.getTimeString()}`)
 
     // Equirectangular outer bound
+    console.log()
+    console.log('+------------------------------------------------------------------------')
+    console.log('| Equirectangular calculations')
+    console.log('+------------------------------------------------------------------------')
+
     const outerWidth = config.panoAngle === 360 ? srcImage.width : Math.floor(srcImage.width * 360 / config.panoAngle);
     const outerHeight = Math.floor(outerWidth / 2);
     console.log({angel: config.panoAngle})
@@ -82,11 +87,14 @@ async function renderPano(config) {
     // Preview
     const previewCubedPath = getPathAndCreateDir(config.targetFolder, config.previewCubePath);
     zipSource.files.push(previewCubedPath);
+    const previewFlatPath = getPathAndCreateDir(config.targetFolder, config.previewFlatPath);
+    zipSource.files.push(previewFlatPath);
     const previewScaledPath = getPathAndCreateDir(config.targetFolder, config.previewScaledPath);
     zipSource.files.push(previewScaledPath);
 
     if (!config.previewIgnore) {
         previewCube(config, srcImage, outerWidth, xOff, yOff, previewCubedPath);
+        previewFlat(config, srcImage, outerWidth, xOff, yOff, previewFlatPath);
         previewScaled(srcImage, config, previewScaledPath);
     }
 
@@ -230,6 +238,10 @@ function html(config, data) {
 }
 
 async function tiles(srcImage, w, xOff, yOff, faceNames, targetImageSize, config, levels) {
+    if(config.tilesIgnore && !config.renderCube){
+        return;
+    }
+
     const swAll = new Stopwatch().begin();
 
     // load Signature Image
@@ -265,6 +277,8 @@ async function tiles(srcImage, w, xOff, yOff, faceNames, targetImageSize, config
             console.log();
             const offX = (targetImageSize - signatureImage.width) / 2;
             const offY = (targetImageSize - signatureImage.height) / 2;
+
+            // TODO use IMG.blendImg
             for (let y = 0; y < signatureImage.height; ++y) {
                 for (let x = 0; x < signatureImage.width; ++x) {
 
@@ -309,9 +323,9 @@ async function tiles(srcImage, w, xOff, yOff, faceNames, targetImageSize, config
             swFace.begin();
             const tilePathTemplate = twig({data: config.tilePathTemplate});
             for (let level = levels.levelCount; level > 0; level--) {
-                console.log(`  Render Level: ${level}`)
                 const countX = Math.ceil(faceImg.height / config.tileSize);
                 const countY = Math.ceil(faceImg.width / config.tileSize);
+                console.log(`  Render Level: ${level} (${countX}x${countY} = ${countX*countY} Tiles)`)
 
                 const imgCount = countX * countY;
                 progressBar.start(imgCount, 0, {speed: "N/A"})
@@ -356,6 +370,31 @@ function previewCube(config, srcImage, outerWidth, xOff, yOff, previewCubedPath)
     previewImage.write(previewCubedPath, {jpgQuality: config.previewCubeJpgQuality});
 
     console.log(`Cubic preview generated in ${sw.getTimeString()}`);
+}
+
+function previewFlat(config, srcImage, outerWidth, xOff, yOff, previewCubedPath) {
+    const sw = new Stopwatch().begin();
+
+    const faceW = Math.floor(config.previewWidth / 6);
+    console.log()
+    console.log('+------------------------------------------------------------------------')
+    console.log(`| Render flat preview(${faceW * 6}x${faceW}; xOff: ${xOff}, yOff:${yOff})`)
+    console.log('+------------------------------------------------------------------------')
+
+    const result = new IMG().create(faceW * 6, faceW);
+    const faceRenderer = new FaceRenderer(srcImage, outerWidth, xOff, yOff);
+
+    let faceOffset = 0;
+    for (const f of config.previewFlatOrder) {
+        const face = defaultFaceNames[f];
+        let faceImg = faceRenderer.render(face.index, faceW);
+        result.drawImg(faceImg, faceOffset, 0);
+        faceOffset += faceW;
+    }
+
+    result.write(previewCubedPath, {jpgQuality: config.previewFlatJpgQuality});
+
+    console.log(`Flat preview generated in ${sw.getTimeString()}`);
 }
 
 function previewScaled(srcImage, config, targetPath) {

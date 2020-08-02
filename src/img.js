@@ -36,6 +36,50 @@ class BaseIMG extends EventEmitter {
         return this;
     }
 
+    drawImg(sourceImg, xOff, yOff) {
+        for (let j = 0; j < sourceImg.height; ++j) {
+            for (let i = 0; i < sourceImg.height; ++i) {
+                this.setPixel(i + xOff, j + xOff, sourceImg.getPixel(i, j));
+            }
+        }
+    }
+
+    /**
+     * like drawImh but with alpha blending <a href="https://de.wikipedia.org/wiki/Alpha_Blending">Wikipedia</a>
+     *
+     * @param sourceImg
+     * @param xOff
+     * @param yOff
+     * @param below
+     */
+    blendImg(sourceImg, xOff, yOff, below = false) {
+        for (let y = 0; y < sourceImg.height; ++y) {
+            for (let x = 0; x < sourceImg.width; ++x) {
+
+                let A = sourceImg.getPixel(x, y);
+                let B = this.getPixel(x + xOff, y + yOff);
+                if (below) {
+                    let x = A;
+                    A = B;
+                    B = x;
+                }
+
+                const a_A = A.a / 255;
+                const a_NA = 1 - a_A;
+                const b_A = B.a / 255;
+                const a_C = a_A + (a_NA * b_A);
+                const pixel = {
+                    r: ((B.r * a_NA * b_A) + (A.r * a_A)) / a_C,
+                    g: ((B.g * a_NA * b_A) + (A.g * a_A)) / a_C,
+                    b: ((B.b * a_NA * b_A) + (A.b * a_A)) / a_C,
+                    a: a_C
+                }
+
+                this.setPixel(x + xOff, y + yOff, pixel);
+            }
+        }
+    }
+
     newScaledByFactor(factor) {
         const tX = Math.round(this.width * factor);
         const tY = Math.round(this._height * factor);
@@ -113,7 +157,8 @@ class BaseIMG extends EventEmitter {
     }
 }
 
-class BigIMG extends BaseIMG {
+class BigIMG
+    extends BaseIMG {
     _data;
 
     constructor() {
