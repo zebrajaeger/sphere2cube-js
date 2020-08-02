@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const {IMG} = require('./img');
+const {IMG,BigIMG} = require('./img');
 
 class FaceRenderer extends EventEmitter {
 
@@ -13,7 +13,7 @@ class FaceRenderer extends EventEmitter {
 
     render(face, outImgSize) {
         console.log('FaceRenderer.render', {face, outImgSize})
-        const img = new IMG();
+        const img = new BigIMG();
         img.create(outImgSize, outImgSize);
         img.fill({r: 0, g: 0, b: 0, a: 0});
 

@@ -33,6 +33,7 @@
     "nodemon": "^2.0.4"
   },
   "bin": {
-    "createpano": "./src/cli.js"
+    "createpano": "./src/cli.js",
+    "cpn": "./src/cli.js"
   }
 }

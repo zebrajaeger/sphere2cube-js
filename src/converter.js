@@ -7,7 +7,7 @@ const prettyBytes = require('pretty-bytes');
 const twig = require('twig').twig;
 
 const {PSD} = require('./psd');
-const {IMG} = require('./img');
+const {IMG,BigIMG} = require('./img');
 const {Bilinear} = require('./scale');
 const pannellum = require('./pannellum');
 const marzipano = require('./marzipano');
@@ -90,7 +90,12 @@ async function renderPano(config) {
         previewScaled(srcImage, config, previewScaledPath);
     }
 
-    // Tiles
+    // Level Data
+    console.log()
+    console.log('+------------------------------------------------------------------------')
+    console.log('| Level Data')
+    console.log('+------------------------------------------------------------------------')
+
     const targetImageSize = calculateTargetImageSize(config.targetImgSize || Math.floor(srcImage.width / 4), config.tileSize);
     console.log({targetImageSize});
     let levels = calculateLevels(targetImageSize, config.tileSize);
@@ -100,9 +105,9 @@ async function renderPano(config) {
         zipSource.folders.push(folderPath);
     }
     console.log(JSON.stringify(levels, null, 2))
-    // if (!config.tilesIgnore) {
+
+    // Tiles
     await tiles(srcImage, outerWidth, xOff, yOff, defaultFaceNames, targetImageSize, config, levels);
-    // }
 
     // Html
     const hAngel = srcImage.height * 180 / outerHeight
@@ -327,6 +332,7 @@ async function tiles(srcImage, w, xOff, yOff, faceNames, targetImageSize, config
                 }
                 progressBar.stop()
 
+                // TODO for HQ: double scale by Math.sqr(2) instead of 0.5
                 faceImg = faceImg.newScaledByFactor(0.5);
             }
             console.log(`Face tiles created in ${swFace.getTimeString()}`);
@@ -361,19 +367,20 @@ function previewScaled(srcImage, config, targetPath) {
     console.log('+------------------------------------------------------------------------')
     let previewImage = srcImage;
     const pMax = 1000;
-    const f = Math.sqrt(2);
+    const f = config.previewScaledFactor;
 
+    let w = previewImage.width;
+    let h = previewImage.height;
     for (; ;) {
         const toScale = Math.max(previewImage.width / pMax, previewImage.height / pMax);
         let n = Math.min(f, toScale);
         console.log('Downscale for Preview', {toScale, n})
         if (n === 1) {
-            previewImage.write(targetPath, {jpgQuality: config.previewScaledJpgQuality});
+            previewImage.toIMG().write(targetPath, {jpgQuality: config.previewScaledJpgQuality});
             break;
         }
 
-        const tempImg = new IMG();
-        tempImg.create(previewImage.width / n, previewImage.height / n);
+        const tempImg = new BigIMG().create(Math.round(w / n), Math.round(h / n));
 
         const bilinear = new Bilinear();
         bilinear.on('begin', lineCount => progressBar.start(lineCount - 1, 0, {speed: "N/A"}));
@@ -388,6 +395,8 @@ function previewScaled(srcImage, config, targetPath) {
             (x, y, pixel) => {
                 tempImg.setPixel(x, y, pixel)
             });
+        w /= n;
+        h /= n;
         previewImage = tempImg;
     }
 
@@ -434,13 +443,6 @@ function getPathAndCreateDir(targetFolder, filePath) {
     const filDir = path.dirname(absoluteFilePath);
     fs.mkdirSync(filDir, {recursive: true});
     return absoluteFilePath;
-}
-
-function clipColor(c) {
-    return c;
-    // if (c < 0) return 0;
-    // if (c > 255) return 255;
-    // return Math.round(c)
 }
 
 function showMemoryUsage() {

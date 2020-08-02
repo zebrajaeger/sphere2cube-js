@@ -227,7 +227,7 @@ module.exports.PSD = class PSD extends EventEmitter {
                 lineSizes.push(buf.readUInt32BE(i << 2));
             }
         }
-        console.log('Line Sizes', lineSizes);
+        // console.log('Line Sizes', lineSizes);
         console.log('offset', offset);
 
         console.log('Read Image Data.');

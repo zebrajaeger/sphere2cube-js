@@ -6,8 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 // find and parse package.json
-const p = process.argv[1]
-const pjp = path.resolve(p, '../..', 'package.json');
+const pjp = path.resolve(__dirname, '..', 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(pjp, 'utf-8'))
 
 // cli
@@ -40,6 +39,7 @@ program
     .option('-pcp, --previewCubePath <path>', 'path and name of preview image', 'preview.q.jpg')
     .option('-pcq, --previewCubeJpgQuality <percent>', 'Preview quality in percent', '85')
     .option('-psp, --previewScaledPath <path>', 'path and name of preview image', 'preview.s.jpg')
+    .option('-psf, --previewScaledFactor <path>', 'Factor for one Downscaling', Math.sqrt(2))
     .option('-psq, --previewScaledJpgQuality <percent>', 'Preview quality in percent', '85')
     .option('-pw, --previewWidth <pixel>', 'Preview width', '1000')
 
@@ -64,9 +64,9 @@ program
     .parse(process.argv);
 
 
-let title = program.input;
+let htmlTitle = program.source;
 if (program.htmlTitle && program.htmlTitle.length !== 0) {
-    title = program.htmlTitle;
+    htmlTitle = program.htmlTitle;
 }
 
 const cfg = {
@@ -99,6 +99,7 @@ const cfg = {
     previewCubePath: program.previewCubePath,
     previewCubeJpgQuality: parseInt(program.previewCubeJpgQuality, 10),
     previewScaledPath: program.previewScaledPath,
+    previewScaledFactor: parseFloat(program.previewScaledFactor),
     previewScaledJpgQuality: parseInt(program.previewScaledJpgQuality, 10),
 
     // Signature
@@ -108,7 +109,7 @@ const cfg = {
 
     // Html
     htmlIgnore: Boolean(program.htmlIgnore),
-    htmlTitle: title,
+    htmlTitle,
     htmlPannellumFile: program.htmlPannellumFile,
     htmlMarzipanoFile: program.htmlMarzipanoFile,
 
