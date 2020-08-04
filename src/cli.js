@@ -65,7 +65,7 @@ program
     .option('-zp, --zipPath <path>', 'Path for Zip File', null)
 
     // Debug
-    .option('-v, --verbose', 'verbose', 'false')
+    .option('-v, --verbose', 'verbose', 'true')
 
     .parse(process.argv);
 
@@ -151,6 +151,8 @@ if (program.source.endsWith('.json')) {
     if (program.configSave) {
         let cfgFileName = program.input || 'panoconfig.json';
         fs.writeFileSync(cfgFileName, JSON.stringify(cfg, null, 2));
+
+        return;
     }
 }
 
