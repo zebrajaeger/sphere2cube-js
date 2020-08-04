@@ -9,11 +9,6 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@fiahfy/packbits@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@fiahfy/packbits/-/packbits-0.0.5.tgz#6244ad80c728d79e78a6e7ed8130a5b2c994f0db"
-  integrity sha512-wusKxQnGWo+T/UpJD7oSag5zYhQQmOk9ekEV7EwLb8sYcXTcFFOsLN/nqx5VNnMGUfO6/JAqnY9vbmExxSBtkw==
-
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"

@@ -16,7 +16,6 @@
   },
   "homepage": "https://github.com/zebrajaeger/sphere2cube-js/",
   "dependencies": {
-    "@fiahfy/packbits": "^0.0.5",
     "archiver": "^4.0.2",
     "cli-progress": "^3.8.2",
     "commander": "^5.1.0",

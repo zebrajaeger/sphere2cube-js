@@ -1,6 +1,5 @@
 const {RandomAccessFile} = require('./randomaccessfile');
 const EventEmitter = require('events');
-const packbits = require('@fiahfy/packbits');
 const xml2js = require('xml2js');
 
 module.exports.PSD = class PSD extends EventEmitter {
@@ -235,7 +234,7 @@ module.exports.PSD = class PSD extends EventEmitter {
         this.emit('begin', lineCount);
         for (let x = 0; x < lineCount; ++x) {
             buf = await RandomAccessFile.read(fd, offset, lineSizes[x]);
-            let l = packbits.decode(buf);
+            let l = this.decodePackbits(buf, this.width);
             this._lines.push(l)
             offset += lineSizes[x];
             if (x % 100 === 0) {
@@ -245,4 +244,40 @@ module.exports.PSD = class PSD extends EventEmitter {
         this.emit('progress', lineCount);
         this.emit('end');
     }
+
+    decodePackbits(sourceBuffer, resultSize) {
+        const result = Buffer.alloc(resultSize);
+
+        let targetIndex = 0;
+        let sourceIndex = 0;
+        while (sourceIndex < sourceBuffer.length) {
+            const byte = sourceBuffer.readInt8(sourceIndex++);
+            // -128 -> skip
+            if (byte === -128) {
+                continue;
+            }
+
+            if (byte < 0) {
+                // -1 to -127 -> one byte of data repeated (1 - byte) times
+                let length = 1 - byte;
+                const val = sourceBuffer[sourceIndex++];
+                for (let i = 0; i < length; ++i) {
+                    result[targetIndex++] = val;
+                }
+            } else {
+                // 0 to 127 -> (1 + byte) literal bytes
+                let length = 1 + byte;
+                for (let j = 0; j < length; ++j) {
+                    result[targetIndex++] = sourceBuffer[sourceIndex++];
+                }
+            }
+        }
+
+        if (targetIndex !== resultSize) {
+            throw Error(`Wrong line size. Expected: ${resultSize} but is: ${targetIndex}`)
+        }
+
+        return result;
+    }
+
 }
