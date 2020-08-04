@@ -39,7 +39,7 @@ class BaseIMG extends EventEmitter {
     drawImg(sourceImg, xOff, yOff) {
         for (let j = 0; j < sourceImg.height; ++j) {
             for (let i = 0; i < sourceImg.height; ++i) {
-                this.setPixel(i + xOff, j + xOff, sourceImg.getPixel(i, j));
+                this.setPixel(i + xOff, j + yOff, sourceImg.getPixel(i, j));
             }
         }
     }
