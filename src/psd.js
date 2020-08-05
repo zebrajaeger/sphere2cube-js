@@ -110,7 +110,7 @@ module.exports.PSD = class PSD extends EventEmitter {
         let imageResourceLength = buf.readUInt32BE(0);
         console.log('Image Resources length', imageResourceLength);
         buf = await RandomAccessFile.read(fd, offset, imageResourceLength);
-        this.parseImageResource(buf);
+        await this.parseImageResource(buf);
 
         offset += imageResourceLength;
 
@@ -130,7 +130,7 @@ module.exports.PSD = class PSD extends EventEmitter {
         return {offset, fd, version};
     }
 
-    parseImageResource(buf) {
+    async parseImageResource(buf) {
         let idx = 0;
         const signature = buf.toString('utf8', 0, 4);
         for (; idx < buf.length;) {
@@ -160,8 +160,8 @@ module.exports.PSD = class PSD extends EventEmitter {
                 console.log({id, name, size})
                 idx += size;
                 if (id === 1058) {
+                    await this.parseExif(data)
                     // EXIF Data 1
-                    // console.log('EXIF Data 1', data.toString());
                 }
                 if (id === 1059) {
                     // EXIF Data 3
@@ -169,21 +169,39 @@ module.exports.PSD = class PSD extends EventEmitter {
                 }
                 if (id === 1060) {
                     // XMP metadata
-                    console.log('XMP metadata', data.toString());
-                    const parser = new xml2js.Parser();
-                    try {
-                        parser.parseString(data.toString(), (e, d) => {
-                            // https://developers.google.com/streetview/spherical-metadata?hl=de
-                            d = d['x:xmpmeta']['rdf:RDF'][0]['rdf:Description'][1]['$']
-                            console.log(JSON.stringify(d, null, 2))
-
-                        })
-                    } catch (err) {
-                        console.log(err)
-                    }
+                    await this.parseXMP(data)
                 }
                 //console.log(buf.toString())
             }
+        }
+    }
+
+    async parseExif(data) {
+        // add jpg prefix, see https://www.media.mit.edu/pia/Research/deepview/exif.html
+        const l = data.length + 8;
+        const l1 = Math.floor(l / 256);
+        const l2 = l % 256;
+        const prefix = Buffer.from([0xff, 0xe1, l1, l2, 0x45, 0x78, 0x69, 0x66, 0, 0])
+        const jpg = Buffer.concat([prefix, data])
+
+        const result = require('exif-parser').create(jpg).parse();
+        console.log('EXIF:', result.tags)
+    }
+
+    async parseXMP(data) {
+        //console.log('XMP metadata', data.toString());
+        const parser = new xml2js.Parser();
+        try {
+            parser.parseString(data.toString(), (e, d) => {
+                // https://developers.google.com/streetview/spherical-metadata?hl=de
+                d['x:xmpmeta']['rdf:RDF'][0]['rdf:Description'].forEach(description => {
+                    if (description['$']['xmlns:GPano']) {
+                        console.log('XMP:', JSON.stringify(description['$'], null, 2))
+                    }
+                })
+            })
+        } catch (err) {
+            console.log(err)
         }
     }
 

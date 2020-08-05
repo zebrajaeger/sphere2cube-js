@@ -20,6 +20,7 @@
     "cli-progress": "^3.8.2",
     "commander": "^5.1.0",
     "execution-time": "^1.4.1",
+    "exif-parser": "^0.1.12",
     "humanize-duration": "^3.23.1",
     "jpeg-js": "^0.4.1",
     "pngjs": "^5.0.0",
