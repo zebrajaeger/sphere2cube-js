@@ -45,7 +45,7 @@ program
     .option('-pfo, --previewFlatOrder <path>', 'Face order from left to right', 'bdflru')
     .option('-pfq, --previewFlatJpgQuality <percent>', 'Preview quality in percent', '85')
     .option('-psp, --previewScaledPath <path>', 'Path and name of preview image', 'preview.s.jpg')
-    .option('-psf, --previewScaledFactor <path>', 'Factor for one Downscaling', Math.sqrt(2).toString())
+    .option('-psf, --previewScaledFactor <path>', 'Factor for one Downscaling', '2')
     .option('-psq, --previewScaledJpgQuality <percent>', 'Preview quality in percent', '85')
     .option('-pw, --previewWidth <pixel>', 'Preview width', '1000')
 
