@@ -1,9 +1,8 @@
 const fs = require('fs');
 
-async function read(fd, position, length) {
+async function readFs(fd, position, length, buffer) {
     return new Promise((resolve, reject) => {
-        const b = new Buffer.alloc(length);
-        fs.read(fd, b, 0, length, position, (err, bytesRead, buffer) => {
+        fs.read(fd, buffer, 0, length, position, (err, bytesRead, buffer) => {
             if (err) {
                 reject(err);
             } else {
@@ -15,6 +14,15 @@ async function read(fd, position, length) {
             }
         })
     });
+}
+
+async function read(fd, position, length) {
+    return readFs(fd, position, length, new Buffer.alloc(length));
+}
+
+async function readAsSharedInt8Array(fd, position, length) {
+    const buffer = new Int8Array(new SharedArrayBuffer(length))
+    return readFs(fd, position, length, buffer);
 }
 
 exports.RandomAccessFile = {
@@ -43,6 +51,7 @@ exports.RandomAccessFile = {
     },
 
     read: read,
+    readAsSharedInt8Array: readAsSharedInt8Array,
 
     fileSize: (filename) => {
         const stats = fs.statSync(filename)

@@ -1,6 +1,9 @@
 const {RandomAccessFile} = require('./randomaccessfile');
 const EventEmitter = require('events');
 const xml2js = require('xml2js');
+const path = require("path");
+
+const {StaticWorkerPool} = require('@zebrajaeger/threadpool');
 
 module.exports.PSD = class PSD extends EventEmitter {
     _lines = [];
@@ -244,58 +247,36 @@ module.exports.PSD = class PSD extends EventEmitter {
                 lineSizes.push(buf.readUInt32BE(i << 2));
             }
         }
-        // console.log('Line Sizes', lineSizes);
+         console.log('Line Sizes', lineSizes);
         console.log('offset', offset);
 
         console.log('Read Image Data.');
 
         this.emit('begin', lineCount);
+
+        const pool = new StaticWorkerPool(path.resolve(__dirname, 'worker-packbits.js'),1).begin();
+        this._lines = new Array(lineCount);
         for (let x = 0; x < lineCount; ++x) {
-            buf = await RandomAccessFile.read(fd, offset, lineSizes[x]);
-            let l = this.decodePackbits(buf, this.width);
-            this._lines.push(l)
+            const source = await RandomAccessFile.readAsSharedInt8Array(fd, offset, lineSizes[x]);
+            //console.log(source);
+            pool.exec({
+                lineIndex: x,
+                source,
+                target: new Uint8Array(new SharedArrayBuffer(this.width))
+            }).promise.then((result) => {
+                const lineIndex = result.data.lineIndex;
+                this._lines[lineIndex] = result.data.target;
+                if (lineIndex % 100 === 0) {
+                    this.emit('progress', lineIndex);
+                }
+            })
+
             offset += lineSizes[x];
-            if (x % 100 === 0) {
-                this.emit('progress', x);
-            }
         }
         this.emit('progress', lineCount);
+        await pool.finished();
+        await pool.destroy();
+
         this.emit('end');
     }
-
-    decodePackbits(sourceBuffer, resultSize) {
-        const result = Buffer.alloc(resultSize);
-
-        let targetIndex = 0;
-        let sourceIndex = 0;
-        while (sourceIndex < sourceBuffer.length) {
-            const byte = sourceBuffer.readInt8(sourceIndex++);
-            // -128 -> skip
-            if (byte === -128) {
-                continue;
-            }
-
-            if (byte < 0) {
-                // -1 to -127 -> one byte of data repeated (1 - byte) times
-                let length = 1 - byte;
-                const val = sourceBuffer[sourceIndex++];
-                for (let i = 0; i < length; ++i) {
-                    result[targetIndex++] = val;
-                }
-            } else {
-                // 0 to 127 -> (1 + byte) literal bytes
-                let length = 1 + byte;
-                for (let j = 0; j < length; ++j) {
-                    result[targetIndex++] = sourceBuffer[sourceIndex++];
-                }
-            }
-        }
-
-        if (targetIndex !== resultSize) {
-            throw Error(`Wrong line size. Expected: ${resultSize} but is: ${targetIndex}`)
-        }
-
-        return result;
-    }
-
 }
