@@ -42,7 +42,8 @@ program
     .option('-pcp, --previewCubePath <path>', 'Path and name of preview image', 'preview.q.jpg')
     .option('-pcq, --previewCubeJpgQuality <percent>', 'Preview quality in percent', '85')
     .option('-pfp, --previewFlatPath <path>', 'Path and name of preview image', 'preview.f.jpg')
-    .option('-pfo, --previewFlatOrder <path>', 'Face order from left to right', 'bdflru')
+    .option('-pfo, --previewFlatOrder <path>', 'Face order in the given layout direction', 'bdflru')
+    .option('-pfl, --previewFlatLayout <direction>', 'Face order direction, horizontal or vertical', 'horizontal')
     .option('-pfq, --previewFlatJpgQuality <percent>', 'Preview quality in percent', '85')
     .option('-psp, --previewScaledPath <path>', 'Path and name of preview image', 'preview.s.jpg')
     .option('-psf, --previewScaledFactor <path>', 'Factor for one Downscaling', '2')
@@ -125,6 +126,7 @@ if (program.source.endsWith('.json')) {
         previewFlatPath: program.previewFlatPath,
         previewFlatJpgQuality: parseInt(program.previewFlatJpgQuality, 10),
         previewFlatOrder: program.previewFlatOrder,
+        previewFlatLayout: program.previewFlatLayout,
         previewScaledPath: program.previewScaledPath,
         previewScaledFactor: parseFloat(program.previewScaledFactor),
         previewScaledJpgQuality: parseInt(program.previewScaledJpgQuality, 10),
