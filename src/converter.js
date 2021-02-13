@@ -375,21 +375,40 @@ function previewCube(config, srcImage, outerWidth, xOff, yOff, previewCubedPath)
 function previewFlat(config, srcImage, outerWidth, xOff, yOff, previewCubedPath) {
     const sw = new Stopwatch().begin();
 
-    const faceW = Math.floor(config.previewWidth / 6);
+    let faceW;
+    let faceH;
+    let faceSize;
+
+    if (config.previewFlatLayout === 'vertical') {
+        faceW = Math.floor(config.previewWidth);
+        faceH = Math.floor(config.previewWidth) * 6;
+        faceSize = Math.floor(config.previewWidth);
+    } else {
+        faceW = Math.floor(config.previewWidth / 6) * 6;
+        faceH = Math.floor(config.previewWidth / 6);
+        faceSize = Math.floor(config.previewWidth / 6);
+    }
+
     console.log()
     console.log('+------------------------------------------------------------------------')
-    console.log(`| Render flat preview(${faceW * 6}x${faceW}; xOff: ${xOff}, yOff:${yOff})`)
+    console.log(`| Render flat preview(${faceW}x${faceH}; xOff: ${xOff}, yOff:${yOff})`)
     console.log('+------------------------------------------------------------------------')
 
-    const result = new IMG().create(faceW * 6, faceW);
+    const result = new IMG().create(faceW, faceH);
     const faceRenderer = new FaceRenderer(srcImage, outerWidth, xOff, yOff);
 
     let faceOffset = 0;
     for (const f of config.previewFlatOrder) {
         const face = defaultFaceNames[f];
-        let faceImg = faceRenderer.render(face.index, faceW);
-        result.drawImg(faceImg, faceOffset, 0);
-        faceOffset += faceW;
+        let faceImg = faceRenderer.render(face.index, faceSize);
+
+        if (config.previewFlatLayout === 'vertical') {
+            result.drawImg(faceImg, 0, faceOffset);
+        } else {
+            result.drawImg(faceImg, faceOffset, 0);
+        }
+
+        faceOffset += faceSize;
     }
 
     result.write(previewCubedPath, {jpgQuality: config.previewFlatJpgQuality});

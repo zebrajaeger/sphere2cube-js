@@ -59,7 +59,8 @@ Options:
   -pcp, --previewCubePath <path>             Path and name of preview image (default: "preview.q.jpg")
   -pcq, --previewCubeJpgQuality <percent>    Preview quality in percent (default: "85")
   -pfp, --previewFlatPath <path>             Path and name of preview image (default: "preview.f.jpg")
-  -pfo, --previewFlatOrder <path>            Face order from left to right (default: "bdflru")
+  -pfo, --previewFlatOrder <path>            Face order in the given layout direction (default: "bdflru")
+  -pfl, --previewFlatLayout <direction>      Face order direction, horizontal or vertical, "horizontal"
   -pfq, --previewFlatJpgQuality <percent>    Preview quality in percent (default: "85")
   -psp, --previewScaledPath <path>           Path and name of preview image (default: "preview.s.jpg")
   -psf, --previewScaledFactor <path>         Factor for one Downscaling (default: "1.4142135623730951")
